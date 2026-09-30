@@ -1,0 +1,36 @@
+name = "Site Inspection Reporter"
+description = "Multimodal site-visit assistant for formwork engineers. Collects the visit by voice, reviews site photos or live camera, and files a structured A-1.3/91 Daily Report."
+model = "gemini-3.8-live"
+voice = "Leda"
+language = "en-IN"
+temperature = 0.3
+
+[[placeholders]]
+key = "engineer_name"
+kind = "vox_text"
+description = "Site engineer making the visit"
+default = "Karthik"
+
+[[placeholders]]
+key = "project_code"
+kind = "vox_text"
+description = "Project code on the daily report"
+default = "IN-CHN-2417"
+
+[[placeholders]]
+key = "project_name"
+kind = "vox_text"
+description = "Project name on the daily report"
+default = "Greenfield Residences Tower B"
+
+[[placeholders]]
+key = "client_name"
+kind = "vox_text"
+description = "Client company"
+default = "Sri Balaji Constructions Pvt. Ltd."
+
+[[placeholders]]
+key = "visit_date"
+kind = "vox_date"
+description = "Date of the site visit"
+default = "2026-09-30"
