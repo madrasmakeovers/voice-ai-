@@ -1,5 +1,5 @@
 {
-  "greeting": "Hi, this is Iris, your site report assistant. Tell me about today's visit, and share photos whenever you're ready.",
+  "greeting": "Hi, I'm Iris. Tell me about today's site visit.",
   "error": "Sorry, I had trouble there. Could you say that again?",
   "time_limit": "We're almost out of time, so I'll save what we have as a draft report.",
   "idle_warning": "Are you still there? You can keep talking or send a photo."
