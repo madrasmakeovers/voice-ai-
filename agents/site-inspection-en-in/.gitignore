@@ -1,0 +1,4 @@
+.vox/
+integrations/
+plugins/*.json
+src/*.wav

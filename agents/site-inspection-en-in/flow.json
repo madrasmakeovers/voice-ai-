@@ -8,25 +8,25 @@
   "lifecycleAudio": {
     "ending": {
       "audio": "time_limit.opus",
-      "timeoutMs": 6240
+      "timeoutMs": 6247
     },
     "error": {
       "audio": "error.opus",
-      "timeoutMs": 4880
+      "timeoutMs": 4887
     },
     "greeting": "greeting.opus",
     "idle": {
       "audio": "idle_warning.opus",
-      "playbackTimeoutMs": 5120,
+      "playbackTimeoutMs": 5127,
       "responseWaitMs": 10000,
       "silenceBeforeMs": 20000
     }
   },
-  "persona": "You are Iris, a site report assistant for formwork site engineers. You can see photos, uploaded images and live camera video the engineer shares. Speak short, practical Indian English and understand Tamil-English and Hindi-English site talk. Your job is to turn the engineer's spoken update and photos into the A-1.3/91 Daily Report without them typing anything. Use the memory tool to record each fact as you hear it; the report is filed by the file_daily_report tool at the end. Never invent quantities, names or times.",
   "onPrematureTransportClose": "file_abandoned",
+  "persona": "You are Iris, a site report assistant for formwork site engineers. You can see photos, uploaded images and live camera video the engineer shares. Speak short, practical Indian English and understand Tamil-English and Hindi-English site talk. Your job is to turn the engineer's spoken update and photos into the A-1.3/91 Daily Report without them typing anything. Use the memory tool to record each fact as you hear it; the report is filed by the file_daily_report tool at the end. Never invent quantities, names or times.",
   "posts": {
-    "file_report": {
-      "instruction": "Call memory with action read, then call file_daily_report once, building every field only from the recorded notes. Leave unknown fields empty and list them in needs_confirmation. Set report_status to complete.",
+    "file_abandoned": {
+      "instruction": "Call memory with action read, then call file_daily_report once, building every field only from the recorded notes. Leave unknown fields empty and list them in needs_confirmation. Set report_status to abandoned.",
       "timeoutSecs": 30,
       "toolPolicy": {
         "tools": [
@@ -45,8 +45,8 @@
         ]
       }
     },
-    "file_abandoned": {
-      "instruction": "Call memory with action read, then call file_daily_report once, building every field only from the recorded notes. Leave unknown fields empty and list them in needs_confirmation. Set report_status to abandoned.",
+    "file_report": {
+      "instruction": "Call memory with action read, then call file_daily_report once, building every field only from the recorded notes. Leave unknown fields empty and list them in needs_confirmation. Set report_status to complete.",
       "timeoutSecs": 30,
       "toolPolicy": {
         "tools": [
@@ -56,165 +56,419 @@
       }
     }
   },
-  "start": "identify_visit",
   "stages": {
-    "identify_visit": {
-      "name": "identify_visit",
-      "bargeIn": true,
-      "instruction": "Greet [[engineer_name]] and confirm this is the site visit report for [[project_code]], [[project_name]], client [[client_name]], dated [[visit_date]]. If they say a different project or date, record the correct values with memory as PROJECT or VISIT_DATE. Tell them they can speak naturally in one go, the way they would send a voice note, and you will only ask for anything missing. Succeed once the project and date are confirmed or corrected; fail if they want to stop or it is the wrong person.",
-      "toolPolicy": {
-        "tools": [
-          "memory"
-        ]
-      },
-      "outcomes": {
-        "success": {
-          "type": "route",
-          "target": "visit_basics"
-        },
-        "failure": {
-          "type": "end",
-          "timeoutSecs": 10,
-          "next_instructions": "Apologise for the trouble, say they can call back any time to file a report, and say goodbye."
-        }
-      }
-    },
-    "visit_basics": {
-      "name": "visit_basics",
-      "bargeIn": true,
-      "instruction": "Collect: in time, out time, the MEVA representative's name and designation (usually [[engineer_name]]), and each client representative met with their designation. Record each fact the moment you hear it by calling memory with action write, one write per fact, prefixed with its report field in capitals (for example \"IN_TIME: 09:40\"). Use only memory on this stage. Ask one short question at a time and never re-ask something the engineer already said. If the engineer has not left site yet, record OUT_TIME as pending. Succeed when all are recorded; fail if they want to stop.",
-      "toolPolicy": {
-        "tools": [
-          "memory"
-        ]
-      },
-      "outcomes": {
-        "success": {
-          "type": "route",
-          "target": "systems"
-        },
-        "failure": {
-          "type": "end_then_post",
-          "post": "file_partial",
-          "timeoutSecs": 10,
-          "next_instructions": "Tell the engineer you have saved what was captured so far as a draft report and they can call back to complete it. Say goodbye."
-        }
-      }
-    },
-    "systems": {
-      "name": "systems",
-      "bargeIn": true,
-      "instruction": "Collect the formwork systems on site. For each system record one memory write as \"SYSTEM: product name | quantity | unit | remarks\", e.g. slab formwork, wall panels, props, column sets, release agent. Remarks cover status such as erected, stripped, damaged or requested. Confirm numbers you are unsure of by repeating them back. Record each fact the moment you hear it by calling memory with action write, one write per fact, prefixed with its report field in capitals (for example \"IN_TIME: 09:40\"). Use only memory on this stage. Ask one short question at a time and never re-ask something the engineer already said. Succeed when the engineer has no more systems to add; fail if they want to stop.",
-      "toolPolicy": {
-        "tools": [
-          "memory"
-        ]
-      },
-      "outcomes": {
-        "success": {
-          "type": "route",
-          "target": "labour_resources"
-        },
-        "failure": {
-          "type": "end_then_post",
-          "post": "file_partial",
-          "timeoutSecs": 10,
-          "next_instructions": "Tell the engineer you have saved what was captured so far as a draft report and they can call back to complete it. Say goodbye."
-        }
-      }
-    },
-    "labour_resources": {
-      "name": "labour_resources",
-      "bargeIn": true,
-      "instruction": "Collect the labour gang (foreman name, number of carpenters and helpers) and other resources such as crane, storage or equipment, including any delays they caused. Record each fact the moment you hear it by calling memory with action write, one write per fact, prefixed with its report field in capitals (for example \"IN_TIME: 09:40\"). Use only memory on this stage. Ask one short question at a time and never re-ask something the engineer already said. Succeed when both are recorded; fail if they want to stop.",
-      "toolPolicy": {
-        "tools": [
-          "memory"
-        ]
-      },
-      "outcomes": {
-        "success": {
-          "type": "route",
-          "target": "activities"
-        },
-        "failure": {
-          "type": "end_then_post",
-          "post": "file_partial",
-          "timeoutSecs": 10,
-          "next_instructions": "Tell the engineer you have saved what was captured so far as a draft report and they can call back to complete it. Say goodbye."
-        }
-      }
-    },
-    "activities": {
-      "name": "activities",
+    "01a0f2a0-4f19-78e2-8c1d-d99d30653b99": {
       "bargeIn": true,
       "instruction": "Collect the detailed activities: purpose of visit, current site stage, work completed, discussion points, instructions given to the client side, pending follow-ups, and the next visit. Record each instruction as \"INSTRUCTION: what | responsible person | by when\"; ask for the responsible person or deadline if missing. Record every other item with its field prefix: PURPOSE, STAGE, DONE, DISCUSSION, PENDING, NEXT_VISIT. Record each fact the moment you hear it by calling memory with action write, one write per fact, prefixed with its report field in capitals (for example \"IN_TIME: 09:40\"). Use only memory on this stage. Ask one short question at a time and never re-ask something the engineer already said. Succeed when the engineer confirms nothing else happened on the visit; fail if they want to stop.",
+      "name": "activities",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Tell the engineer you have saved what was captured so far as a draft report and they can call back to complete it. Say goodbye.",
+          "post": "file_partial",
+          "timeoutSecs": 10,
+          "type": "end_then_post"
+        },
+        "success": {
+          "target": "01a0f2a0-4f19-78e2-8c1d-d9d53155b33a",
+          "type": "route"
+        }
+      },
       "toolPolicy": {
         "tools": [
           "memory"
         ]
-      },
-      "outcomes": {
-        "success": {
-          "type": "route",
-          "target": "site_photos"
-        },
-        "failure": {
-          "type": "end_then_post",
-          "post": "file_partial",
-          "timeoutSecs": 10,
-          "next_instructions": "Tell the engineer you have saved what was captured so far as a draft report and they can call back to complete it. Say goodbye."
-        }
       }
     },
-    "site_photos": {
-      "name": "site_photos",
-      "bargeIn": true,
-      "instruction": "Ask the engineer to share site photos, upload images, or turn on the camera and walk you through the site. For each image or view, briefly describe what you see and ask what it shows, then record one memory write as \"PHOTO: short caption | your observation\". Point out anything that looks inconsistent with what they reported or with safe formwork practice, such as uneven prop spacing, damaged panel faces, missing release agent, or panels stored on soil, and ask them to confirm; record confirmed issues as DISCUSSION. Do not guess measurements you cannot see clearly. Succeed when they have finished sharing or say they have no photos; fail only if they want to stop the call.",
-      "toolPolicy": {
-        "tools": [
-          "memory"
-        ]
-      },
-      "outcomes": {
-        "success": {
-          "type": "route",
-          "target": "confirm_report"
-        },
-        "failure": {
-          "type": "end_then_post",
-          "post": "file_partial",
-          "timeoutSecs": 10,
-          "next_instructions": "Tell the engineer you have saved what was captured so far as a draft report and they can call back to complete it. Say goodbye."
-        }
-      }
-    },
-    "confirm_report": {
-      "name": "confirm_report",
+    "01a0f2a0-4f19-78e2-8c1d-d9a7a0b5007b": {
       "bargeIn": true,
       "instruction": "Call memory with action read, then read back a short summary: times, people met, each system with its quantity, labour, the instructions with who is responsible, pending items, next visit and number of photos. Clearly flag anything recorded as pending or that you inferred rather than heard. Record any correction with memory. Succeed when the engineer confirms the report can be filed; fail if they want to stop without filing.",
+      "name": "confirm_report",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Tell the engineer you have saved what was captured so far as a draft report and they can call back to complete it. Say goodbye.",
+          "post": "file_partial",
+          "timeoutSecs": 10,
+          "type": "end_then_post"
+        },
+        "success": {
+          "next_instructions": "Tell the engineer the daily report is filed with the photos attached, mention how many instructions were logged, thank them, and say goodbye.",
+          "post": "file_report",
+          "timeoutSecs": 10,
+          "type": "end_then_post"
+        }
+      },
       "toolPolicy": {
         "tools": [
           "memory"
         ]
-      },
+      }
+    },
+    "01a0f2a0-4f19-78e2-8c1d-d9b8cf5e9ad1": {
+      "bargeIn": true,
+      "instruction": "Greet [[engineer_name]] and confirm this is the site visit report for [[project_code]], [[project_name]], client [[client_name]], dated [[visit_date]]. If they say a different project or date, record the correct values with memory as PROJECT or VISIT_DATE. Tell them they can speak naturally in one go, the way they would send a voice note, and you will only ask for anything missing. Succeed once the project and date are confirmed or corrected; fail if they want to stop or it is the wrong person.",
+      "name": "identify_visit",
       "outcomes": {
-        "success": {
-          "type": "end_then_post",
-          "post": "file_report",
-          "timeoutSecs": 10,
-          "next_instructions": "Tell the engineer the daily report is filed with the photos attached, mention how many instructions were logged, thank them, and say goodbye."
-        },
         "failure": {
-          "type": "end_then_post",
+          "next_instructions": "Apologise for the trouble, say they can call back any time to file a report, and say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        },
+        "success": {
+          "target": "01a0f2a0-4f19-78e2-8c1d-d9f8c4ce7cc0",
+          "type": "route"
+        }
+      },
+      "toolPolicy": {
+        "tools": [
+          "memory"
+        ]
+      }
+    },
+    "01a0f2a0-4f19-78e2-8c1d-d9cc201c20c1": {
+      "bargeIn": true,
+      "instruction": "Collect the labour gang (foreman name, number of carpenters and helpers) and other resources such as crane, storage or equipment, including any delays they caused. Record each fact the moment you hear it by calling memory with action write, one write per fact, prefixed with its report field in capitals (for example \"IN_TIME: 09:40\"). Use only memory on this stage. Ask one short question at a time and never re-ask something the engineer already said. Succeed when both are recorded; fail if they want to stop.",
+      "name": "labour_resources",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Tell the engineer you have saved what was captured so far as a draft report and they can call back to complete it. Say goodbye.",
           "post": "file_partial",
           "timeoutSecs": 10,
-          "next_instructions": "Tell the engineer you have saved what was captured so far as a draft report and they can call back to complete it. Say goodbye."
+          "type": "end_then_post"
+        },
+        "success": {
+          "target": "01a0f2a0-4f19-78e2-8c1d-d99d30653b99",
+          "type": "route"
         }
+      },
+      "toolPolicy": {
+        "tools": [
+          "memory"
+        ]
+      }
+    },
+    "01a0f2a0-4f19-78e2-8c1d-d9d53155b33a": {
+      "bargeIn": true,
+      "instruction": "Ask the engineer to share site photos, upload images, or turn on the camera and walk you through the site. For each image or view, briefly describe what you see and ask what it shows, then record one memory write as \"PHOTO: short caption | your observation\". Point out anything that looks inconsistent with what they reported or with safe formwork practice, such as uneven prop spacing, damaged panel faces, missing release agent, or panels stored on soil, and ask them to confirm; record confirmed issues as DISCUSSION. Do not guess measurements you cannot see clearly. Succeed when they have finished sharing or say they have no photos; fail only if they want to stop the call.",
+      "name": "site_photos",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Tell the engineer you have saved what was captured so far as a draft report and they can call back to complete it. Say goodbye.",
+          "post": "file_partial",
+          "timeoutSecs": 10,
+          "type": "end_then_post"
+        },
+        "success": {
+          "target": "01a0f2a0-4f19-78e2-8c1d-d9a7a0b5007b",
+          "type": "route"
+        }
+      },
+      "toolPolicy": {
+        "tools": [
+          "memory"
+        ]
+      }
+    },
+    "01a0f2a0-4f19-78e2-8c1d-d9e91b400ff1": {
+      "bargeIn": true,
+      "instruction": "Collect the formwork systems on site. For each system record one memory write as \"SYSTEM: product name | quantity | unit | remarks\", e.g. slab formwork, wall panels, props, column sets, release agent. Remarks cover status such as erected, stripped, damaged or requested. Confirm numbers you are unsure of by repeating them back. Record each fact the moment you hear it by calling memory with action write, one write per fact, prefixed with its report field in capitals (for example \"IN_TIME: 09:40\"). Use only memory on this stage. Ask one short question at a time and never re-ask something the engineer already said. Succeed when the engineer has no more systems to add; fail if they want to stop.",
+      "name": "systems",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Tell the engineer you have saved what was captured so far as a draft report and they can call back to complete it. Say goodbye.",
+          "post": "file_partial",
+          "timeoutSecs": 10,
+          "type": "end_then_post"
+        },
+        "success": {
+          "target": "01a0f2a0-4f19-78e2-8c1d-d9cc201c20c1",
+          "type": "route"
+        }
+      },
+      "toolPolicy": {
+        "tools": [
+          "memory"
+        ]
+      }
+    },
+    "01a0f2a0-4f19-78e2-8c1d-d9f8c4ce7cc0": {
+      "bargeIn": true,
+      "instruction": "Collect: in time, out time, the MEVA representative's name and designation (usually [[engineer_name]]), and each client representative met with their designation. Record each fact the moment you hear it by calling memory with action write, one write per fact, prefixed with its report field in capitals (for example \"IN_TIME: 09:40\"). Use only memory on this stage. Ask one short question at a time and never re-ask something the engineer already said. If the engineer has not left site yet, record OUT_TIME as pending. Succeed when all are recorded; fail if they want to stop.",
+      "name": "visit_basics",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Tell the engineer you have saved what was captured so far as a draft report and they can call back to complete it. Say goodbye.",
+          "post": "file_partial",
+          "timeoutSecs": 10,
+          "type": "end_then_post"
+        },
+        "success": {
+          "target": "01a0f2a0-4f19-78e2-8c1d-d9e91b400ff1",
+          "type": "route"
+        }
+      },
+      "toolPolicy": {
+        "tools": [
+          "memory"
+        ]
       }
     }
   },
+  "start": "01a0f2a0-4f19-78e2-8c1d-d9b8cf5e9ad1",
   "tools": {
+    "file_daily_report": {
+      "dispatch": {
+        "handler": "capture",
+        "kind": "flow_local"
+      },
+      "policy": {
+        "async": {
+          "mode": "none"
+        },
+        "invocation": {
+          "arguments": {
+            "invalid": "The report fields do not match the schema. Re-check required fields and call file_daily_report again."
+          },
+          "concurrency": {
+            "inFlight": "The report is already being filed. Wait before calling file_daily_report again.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "exceeded": "The report is already filed. Do not call file_daily_report again.",
+            "mode": "once"
+          }
+        }
+      },
+      "schema": {
+        "description": "File the structured A-1.3/91 Daily Report for this site visit. Call once in the post, after reading memory.",
+        "name": "file_daily_report",
+        "parameters": {
+          "properties": {
+            "client": {
+              "description": "Client company.",
+              "type": "string"
+            },
+            "client_representatives": {
+              "description": "Client representatives met, with designations.",
+              "type": "string"
+            },
+            "discussion_points": {
+              "description": "Discussion points and confirmed issues.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "in_time": {
+              "description": "In time, HH:MM, or empty.",
+              "type": "string"
+            },
+            "instructions": {
+              "description": "Instructions given to the client side.",
+              "items": {
+                "properties": {
+                  "by": {
+                    "description": "Deadline or timing.",
+                    "type": "string"
+                  },
+                  "instruction": {
+                    "description": "What was instructed.",
+                    "type": "string"
+                  },
+                  "responsible": {
+                    "description": "Responsible person.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "instruction",
+                  "responsible",
+                  "by"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "labour_gang": {
+              "description": "Labour gang available.",
+              "type": "string"
+            },
+            "meva_designation": {
+              "description": "MEVA representative designation.",
+              "type": "string"
+            },
+            "meva_representative": {
+              "description": "MEVA representative name.",
+              "type": "string"
+            },
+            "needs_confirmation": {
+              "description": "Fields that were inferred, pending, or not confirmed by the engineer.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "next_visit": {
+              "description": "Next visit date and purpose.",
+              "type": "string"
+            },
+            "other_resources": {
+              "description": "Other resources available and any delays.",
+              "type": "string"
+            },
+            "out_time": {
+              "description": "Out time, HH:MM, or pending.",
+              "type": "string"
+            },
+            "pending": {
+              "description": "Pending follow-ups with owners.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "photos": {
+              "description": "Photo captions with observations.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "project_code": {
+              "description": "Project code, [[project_code]] unless corrected.",
+              "type": "string"
+            },
+            "project_name": {
+              "description": "Project name.",
+              "type": "string"
+            },
+            "purpose": {
+              "description": "Purpose of visit.",
+              "type": "string"
+            },
+            "report_status": {
+              "description": "complete when the engineer confirmed filing; partial when they stopped early; abandoned when the call dropped.",
+              "enum": [
+                "complete",
+                "partial",
+                "abandoned"
+              ],
+              "type": "string"
+            },
+            "site_stage": {
+              "description": "Current site stage.",
+              "type": "string"
+            },
+            "stage_reached": {
+              "description": "Furthest stage reached.",
+              "enum": [
+                "identify_visit",
+                "visit_basics",
+                "systems",
+                "labour_resources",
+                "activities",
+                "site_photos",
+                "confirm_report"
+              ],
+              "type": "string"
+            },
+            "systems": {
+              "description": "Systems offered, one entry per SYSTEM note.",
+              "items": {
+                "properties": {
+                  "product": {
+                    "description": "Product name.",
+                    "type": "string"
+                  },
+                  "quantity": {
+                    "description": "Quantity.",
+                    "type": "string"
+                  },
+                  "remarks": {
+                    "description": "Status remarks.",
+                    "type": "string"
+                  },
+                  "unit": {
+                    "description": "Unit such as m2, nos, sets, L.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "product",
+                  "quantity",
+                  "unit",
+                  "remarks"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "visit_date": {
+              "description": "Visit date as YYYY-MM-DD.",
+              "type": "string"
+            },
+            "work_completed": {
+              "description": "Work completed items.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "report_status",
+            "stage_reached",
+            "project_code",
+            "visit_date",
+            "needs_confirmation"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    "memory": {
+      "dispatch": {
+        "handler": "memory",
+        "kind": "flow_local"
+      },
+      "policy": {
+        "async": {
+          "mode": "none"
+        },
+        "invocation": {
+          "concurrency": {
+            "inFlight": "A memory action is already being handled. Wait for it before calling memory again.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "mode": "unlimited"
+          }
+        }
+      },
+      "schema": {
+        "description": "Record or recall visit notes. action write appends one note the moment you learn it; action read returns every note recorded so far.",
+        "name": "memory",
+        "parameters": {
+          "properties": {
+            "action": {
+              "description": "write appends one note; read returns all notes.",
+              "enum": [
+                "read",
+                "write"
+              ],
+              "type": "string"
+            },
+            "content": {
+              "description": "One note prefixed with its report field, e.g. \"IN_TIME: 09:40\". Required for write.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "action"
+          ],
+          "type": "object"
+        }
+      }
+    },
     "next": {
       "dispatch": {
         "kind": "system"
@@ -225,8 +479,8 @@
         },
         "invocation": {
           "concurrency": {
-            "mode": "reject",
-            "inFlight": "A previous tool call is still in flight. Wait for its result before completing the step."
+            "inFlight": "A previous tool call is still in flight. Wait for its result before completing the step.",
+            "mode": "reject"
           },
           "repeat": {
             "mode": "unlimited"
@@ -234,298 +488,44 @@
         }
       },
       "schema": {
-        "description": "Complete the current stage. Use success only when the stage objective is satisfied; use failure when it is not. Do not call next on a bare tool acknowledgement \u2014 wait for the actual tool result first.",
+        "description": "Complete the current stage. Use success only when the stage objective is satisfied; use failure when it is not. Do not call next on a bare tool acknowledgement — wait for the actual tool result first.",
         "parameters": {
-          "type": "object",
           "properties": {
+            "evidence": {
+              "description": "Brief reason grounded in the caller, tool result, or call event.",
+              "type": "string"
+            },
             "outcome": {
-              "type": "string",
               "description": "success or failure for this stage.",
               "enum": [
                 "success",
                 "failure"
-              ]
-            },
-            "evidence": {
-              "type": "string",
-              "description": "Brief reason grounded in the caller, tool result, or call event."
+              ],
+              "type": "string"
             }
           },
           "required": [
             "outcome",
             "evidence"
-          ]
+          ],
+          "type": "object"
         },
         "response": {
-          "type": "object",
           "properties": {
-            "success": {
-              "type": "boolean",
-              "description": "true means the outcome was accepted; false means retry using next_instructions."
-            },
             "next_instructions": {
-              "type": "string",
-              "description": "Guidance for what to say or do next."
+              "description": "Guidance for what to say or do next.",
+              "type": "string"
+            },
+            "success": {
+              "description": "true means the outcome was accepted; false means retry using next_instructions.",
+              "type": "boolean"
             }
           },
           "required": [
             "success",
             "next_instructions"
-          ]
-        }
-      }
-    },
-    "memory": {
-      "dispatch": {
-        "kind": "flow_local",
-        "handler": "memory"
-      },
-      "policy": {
-        "async": {
-          "mode": "none"
-        },
-        "invocation": {
-          "repeat": {
-            "mode": "unlimited"
-          },
-          "concurrency": {
-            "mode": "reject",
-            "inFlight": "A memory action is already being handled. Wait for it before calling memory again."
-          }
-        }
-      },
-      "schema": {
-        "name": "memory",
-        "description": "Record or recall visit notes. action write appends one note the moment you learn it; action read returns every note recorded so far.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "action": {
-              "type": "string",
-              "enum": [
-                "read",
-                "write"
-              ],
-              "description": "write appends one note; read returns all notes."
-            },
-            "content": {
-              "type": "string",
-              "description": "One note prefixed with its report field, e.g. \"IN_TIME: 09:40\". Required for write."
-            }
-          },
-          "required": [
-            "action"
-          ]
-        }
-      }
-    },
-    "file_daily_report": {
-      "dispatch": {
-        "kind": "flow_local",
-        "handler": "capture"
-      },
-      "policy": {
-        "async": {
-          "mode": "none"
-        },
-        "invocation": {
-          "arguments": {
-            "invalid": "The report fields do not match the schema. Re-check required fields and call file_daily_report again."
-          },
-          "repeat": {
-            "mode": "once",
-            "exceeded": "The report is already filed. Do not call file_daily_report again."
-          },
-          "concurrency": {
-            "mode": "reject",
-            "inFlight": "The report is already being filed. Wait before calling file_daily_report again."
-          }
-        }
-      },
-      "schema": {
-        "name": "file_daily_report",
-        "description": "File the structured A-1.3/91 Daily Report for this site visit. Call once in the post, after reading memory.",
-        "parameters": {
-          "type": "object",
-          "properties": {
-            "report_status": {
-              "type": "string",
-              "enum": [
-                "complete",
-                "partial",
-                "abandoned"
-              ],
-              "description": "complete when the engineer confirmed filing; partial when they stopped early; abandoned when the call dropped."
-            },
-            "stage_reached": {
-              "type": "string",
-              "enum": [
-                "identify_visit",
-                "visit_basics",
-                "systems",
-                "labour_resources",
-                "activities",
-                "site_photos",
-                "confirm_report"
-              ],
-              "description": "Furthest stage reached."
-            },
-            "project_code": {
-              "type": "string",
-              "description": "Project code, [[project_code]] unless corrected."
-            },
-            "project_name": {
-              "type": "string",
-              "description": "Project name."
-            },
-            "client": {
-              "type": "string",
-              "description": "Client company."
-            },
-            "visit_date": {
-              "type": "string",
-              "description": "Visit date as YYYY-MM-DD."
-            },
-            "meva_representative": {
-              "type": "string",
-              "description": "MEVA representative name."
-            },
-            "meva_designation": {
-              "type": "string",
-              "description": "MEVA representative designation."
-            },
-            "client_representatives": {
-              "type": "string",
-              "description": "Client representatives met, with designations."
-            },
-            "in_time": {
-              "type": "string",
-              "description": "In time, HH:MM, or empty."
-            },
-            "out_time": {
-              "type": "string",
-              "description": "Out time, HH:MM, or pending."
-            },
-            "systems": {
-              "type": "array",
-              "description": "Systems offered, one entry per SYSTEM note.",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "product": {
-                    "type": "string",
-                    "description": "Product name."
-                  },
-                  "quantity": {
-                    "type": "string",
-                    "description": "Quantity."
-                  },
-                  "unit": {
-                    "type": "string",
-                    "description": "Unit such as m2, nos, sets, L."
-                  },
-                  "remarks": {
-                    "type": "string",
-                    "description": "Status remarks."
-                  }
-                },
-                "required": [
-                  "product",
-                  "quantity",
-                  "unit",
-                  "remarks"
-                ]
-              }
-            },
-            "labour_gang": {
-              "type": "string",
-              "description": "Labour gang available."
-            },
-            "other_resources": {
-              "type": "string",
-              "description": "Other resources available and any delays."
-            },
-            "purpose": {
-              "type": "string",
-              "description": "Purpose of visit."
-            },
-            "site_stage": {
-              "type": "string",
-              "description": "Current site stage."
-            },
-            "work_completed": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "description": "Work completed items."
-            },
-            "discussion_points": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "description": "Discussion points and confirmed issues."
-            },
-            "instructions": {
-              "type": "array",
-              "description": "Instructions given to the client side.",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "instruction": {
-                    "type": "string",
-                    "description": "What was instructed."
-                  },
-                  "responsible": {
-                    "type": "string",
-                    "description": "Responsible person."
-                  },
-                  "by": {
-                    "type": "string",
-                    "description": "Deadline or timing."
-                  }
-                },
-                "required": [
-                  "instruction",
-                  "responsible",
-                  "by"
-                ]
-              }
-            },
-            "pending": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "description": "Pending follow-ups with owners."
-            },
-            "next_visit": {
-              "type": "string",
-              "description": "Next visit date and purpose."
-            },
-            "photos": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "description": "Photo captions with observations."
-            },
-            "needs_confirmation": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "description": "Fields that were inferred, pending, or not confirmed by the engineer."
-            }
-          },
-          "required": [
-            "report_status",
-            "stage_reached",
-            "project_code",
-            "visit_date",
-            "needs_confirmation"
-          ]
+          ],
+          "type": "object"
         }
       }
     }

@@ -1,6 +1,6 @@
 name = "Site Inspection Reporter"
 description = "Multimodal site-visit assistant for formwork engineers. Collects the visit by voice, reviews site photos or live camera, and files a structured A-1.3/91 Daily Report."
-model = "gemini-3.8-live"
+model = "gemini-3.1-flash-live-preview"
 voice = "Leda"
 language = "en-IN"
 temperature = 0.3
