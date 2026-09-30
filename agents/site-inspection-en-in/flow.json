@@ -8,16 +8,16 @@
   "lifecycleAudio": {
     "ending": {
       "audio": "time_limit.opus",
-      "timeoutMs": 5169
+      "timeoutMs": 6240
     },
     "error": {
       "audio": "error.opus",
-      "timeoutMs": 5769
+      "timeoutMs": 4880
     },
     "greeting": "greeting.opus",
     "idle": {
       "audio": "idle_warning.opus",
-      "playbackTimeoutMs": 3289,
+      "playbackTimeoutMs": 5120,
       "responseWaitMs": 10000,
       "silenceBeforeMs": 20000
     }
