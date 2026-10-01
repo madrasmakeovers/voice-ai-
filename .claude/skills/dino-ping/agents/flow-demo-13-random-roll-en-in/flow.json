@@ -1,0 +1,188 @@
+{
+  "contractVersion": "0.1.0",
+  "guidance": {
+    "notAllowed": "That tool is not available in this step. Continue the conversation using the available tools.",
+    "unknownTool": "That tool is not available. Continue using the tools that are available for this step."
+  },
+  "initiate": true,
+  "integrations": {
+    "019f19a1-36ce-7f28-90e4-261426d1e27c": {
+      "configuration": {},
+      "id": "019f19a1-36ce-7f28-90e4-261426d1e27c",
+      "label": "random number",
+      "operations": [
+        "roll"
+      ],
+      "pluginRef": "demo_wasm_random_number.wasm"
+    }
+  },
+  "lifecycleAudio": {
+    "ending": {
+      "audio": "time_limit.opus",
+      "timeoutMs": 5169
+    },
+    "error": {
+      "audio": "error.opus",
+      "timeoutMs": 5769
+    },
+    "greeting": "greeting.opus",
+    "idle": {
+      "audio": "idle_warning.opus",
+      "playbackTimeoutMs": 3289,
+      "responseWaitMs": 10000,
+      "silenceBeforeMs": 12000
+    }
+  },
+  "persona": "You are Aria, demonstrating an agent-owned WebAssembly integration. Speak in short Indian English turns. The roll_number acknowledgement is never the random number. The only valid number is the integer in the separate result message 'The random number is N.' Do not claim the demo is complete until that result has arrived. After it arrives, call next with success and include the exact integer N in evidence. When next returns the closing instruction, say that exact integer aloud before saying the demo is complete.",
+  "stages": {
+    "01a0b5ad-ea5e-7f02-a298-5d30322d9183": {
+      "bargeIn": true,
+      "instruction": "Ask for a whole number from 1 to 1000000 and call the agent-owned roll_number integration once with max set to it. Treat the immediate acknowledgement only as confirmation that work started. While waiting, do not invent a number, announce completion, or call next. Only the separate message 'The random number is N.' contains the result. After that message arrives, call next with success and put the exact integer N in evidence. The closing instruction returned by next will tell you to speak N. Use failure only for refusal, silence, off-topic input, an out-of-range bound after one re-ask, timeout, or tool failure.",
+      "name": "collect_bound",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Briefly say the random-number demo could not be completed, then goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        },
+        "success": {
+          "next_instructions": "Say 'Your random number is N,' replacing N with the exact roll_number result in the success evidence. Then say the agent-owned integration demo is complete, thank the caller, and say goodbye. Never omit the number or use the requested upper bound.",
+          "timeoutSecs": 10,
+          "type": "end"
+        }
+      },
+      "toolPolicy": {
+        "tools": [
+          "roll_number"
+        ]
+      }
+    }
+  },
+  "start": "01a0b5ad-ea5e-7f02-a298-5d30322d9183",
+  "tools": {
+    "next": {
+      "dispatch": {
+        "kind": "system"
+      },
+      "policy": {
+        "async": {
+          "mode": "none"
+        },
+        "invocation": {
+          "concurrency": {
+            "inFlight": "A previous tool call is still in flight. Wait for its result before completing the step.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "mode": "unlimited"
+          }
+        }
+      },
+      "schema": {
+        "description": "Complete the current stage only after the separate result 'The random number is N.' has arrived. Call next with success only when evidence includes that exact integer. Never call next because roll_number was merely accepted or scheduled.",
+        "name": "next",
+        "parameters": {
+          "properties": {
+            "evidence": {
+              "description": "For success, include the exact returned integer, for example 'roll_number returned 7'. An acknowledgement without an integer is not valid evidence. For failure, state the concrete failure.",
+              "type": "string"
+            },
+            "outcome": {
+              "description": "Allowed outcome for completing the current instruction.",
+              "enum": [
+                "success",
+                "failure"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "outcome",
+            "evidence"
+          ],
+          "type": "object"
+        },
+        "response": {
+          "properties": {
+            "next_instructions": {
+              "type": "string"
+            },
+            "success": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "success",
+            "next_instructions"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    "roll_number": {
+      "dispatch": {
+        "integrationId": "019f19a1-36ce-7f28-90e4-261426d1e27c",
+        "kind": "integration",
+        "operation": "roll"
+      },
+      "policy": {
+        "async": {
+          "mode": "wait_for_result",
+          "staleResult": {
+            "mode": "drop"
+          },
+          "timeout": {
+            "secs": 20
+          }
+        },
+        "integrationHostFailureGuidance": {
+          "internal": "The integration could not be completed. Tell the caller, then follow the current step's failure instructions.",
+          "sandboxViolation": "The integration could not complete safely. Tell the caller the request could not be completed, then follow the current step's failure instructions.",
+          "timedOut": "The first number tool timed out. Tell the caller the demo could not complete and use next with failure.",
+          "unavailable": "The integration service is temporarily unavailable. Tell the caller the request could not be completed, then follow the current step's failure instructions."
+        },
+        "invocation": {
+          "concurrency": {
+            "inFlight": "I'm still working on your previous request — give me a moment.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "exceeded": "That tool has already run for this step. Continue the conversation.",
+            "mode": "once"
+          }
+        }
+      },
+      "schema": {
+        "description": "Schedule a random integer from 1 through the provided inclusive upper bound. The immediate acknowledgement is not a number. Wait for the separate result 'The random number is N.' and preserve that exact integer for the final response.",
+        "name": "roll_number",
+        "parameters": {
+          "properties": {
+            "max": {
+              "description": "Inclusive upper bound for the random number. Must be from 1 through 1000000.",
+              "maximum": 1000000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "max"
+          ],
+          "type": "object"
+        },
+        "response": {
+          "description": "The request acknowledgement.",
+          "properties": {
+            "success": {
+              "description": "true means validation accepted the request and the execution result will be injected shortly. A validation rejection is returned as a function error.",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "success"
+          ],
+          "type": "object"
+        }
+      }
+    }
+  }
+}

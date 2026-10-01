@@ -1,0 +1,110 @@
+{
+  "contractVersion": "0.1.0",
+  "guidance": {
+    "notAllowed": "That tool is not available in this step. Continue the conversation using the available tools.",
+    "unknownTool": "That tool is not available. Continue using the tools that are available for this step."
+  },
+  "initiate": false,
+  "lifecycleAudio": {
+    "ending": {
+      "audio": "time_limit.opus",
+      "timeoutMs": 5169
+    },
+    "error": {
+      "audio": "error.opus",
+      "timeoutMs": 5769
+    },
+    "greeting": "greeting.opus",
+    "idle": {
+      "audio": "idle_warning.opus",
+      "playbackTimeoutMs": 3289,
+      "responseWaitMs": 10000,
+      "silenceBeforeMs": 12000
+    }
+  },
+  "persona": "You are Aria, a friendly English-speaking guide. Give clear, relaxed descriptions of everyday places. Follow the current stage instruction and let the caller choose whether to hear another description.",
+  "stages": {
+    "long_response": {
+      "bargeIn": false,
+      "instruction": "When the caller first speaks, give one continuous description of a peaceful coastal walk in 120 to 160 words. Include the path, sea, weather, sounds, and a place to rest. Use natural spoken prose without headings or numbered lists. Do not ask a question halfway through. Finish with: Would you like another description, or shall we finish? Then wait for the caller. If they request another description, give a different everyday scene in 120 to 160 words, finish with the same question, and wait again. If they ask a question after the description, answer it and offer another description. Keep this stage active after each description; do not call next merely because you finished speaking. Call next with success only when the caller explicitly asks to finish. Use failure only if the caller says they do not want to continue with this conversation.",
+      "name": "long_response",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Briefly acknowledge their choice and say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        },
+        "success": {
+          "next_instructions": "Briefly thank the caller and say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        }
+      },
+      "toolPolicy": {
+        "tools": []
+      }
+    }
+  },
+  "start": "long_response",
+  "tools": {
+    "next": {
+      "dispatch": {
+        "kind": "system"
+      },
+      "policy": {
+        "async": {
+          "mode": "none"
+        },
+        "invocation": {
+          "concurrency": {
+            "inFlight": "A previous tool call is still in flight. Wait for its result before completing the step.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "mode": "unlimited"
+          }
+        }
+      },
+      "schema": {
+        "description": "Complete the current call step. Use success only when the stage instruction is satisfied; use failure when it cannot be completed.",
+        "name": "next",
+        "parameters": {
+          "properties": {
+            "evidence": {
+              "description": "Brief, specific reason for the outcome.",
+              "type": "string"
+            },
+            "outcome": {
+              "description": "Allowed outcome for completing the current instruction.",
+              "enum": [
+                "success",
+                "failure"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "outcome",
+            "evidence"
+          ],
+          "type": "object"
+        },
+        "response": {
+          "properties": {
+            "next_instructions": {
+              "type": "string"
+            },
+            "success": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "success",
+            "next_instructions"
+          ],
+          "type": "object"
+        }
+      }
+    }
+  }
+}

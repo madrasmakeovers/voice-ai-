@@ -1,0 +1,6 @@
+name = "F06 - Multi-Outcome Posts"
+description = "Resolved and escalated outcomes run distinct posts over one capture contract."
+model = "gemini-3.8-live"
+voice = "Leda"
+language = "en-IN"
+temperature = 0.4

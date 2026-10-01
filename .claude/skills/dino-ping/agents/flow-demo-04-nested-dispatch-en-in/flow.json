@@ -1,0 +1,391 @@
+{
+  "contractVersion": "0.1.0",
+  "guidance": {
+    "notAllowed": "That tool is not available in this step. Continue the conversation using the available tools.",
+    "unknownTool": "That tool is not available. Continue using the tools that are available for this step."
+  },
+  "initiate": false,
+  "lifecycleAudio": {
+    "ending": {
+      "audio": "time_limit.opus",
+      "timeoutMs": 5169
+    },
+    "error": {
+      "audio": "error.opus",
+      "timeoutMs": 5769
+    },
+    "greeting": "greeting.opus",
+    "idle": {
+      "audio": "idle_warning.opus",
+      "playbackTimeoutMs": 3289,
+      "responseWaitMs": 10000,
+      "silenceBeforeMs": 12000
+    }
+  },
+  "persona": "You are Aria on a taxi rider helpline. Speak friendly, concise Indian English, and route each caller to the right kind of help.",
+  "posts": {
+    "escalate": {
+      "instruction": "Call mark_disposition once with topic, reason, stageReached, and disposition set to escalated.",
+      "timeoutSecs": 15,
+      "toolPolicy": {
+        "tools": [
+          "mark_disposition"
+        ]
+      }
+    }
+  },
+  "stages": {
+    "01a0b59c-9a4a-7aa3-a750-1b869c26d253": {
+      "bargeIn": true,
+      "instruction": "Explain fare parts: base, distance, time, and surge. Ask which part seems wrong. Success if explanation is accepted; failure if they still want a fare review.",
+      "name": "fare_dispute",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Tell the caller you are raising a ticket for a fare review of the disputed trip.",
+          "post": "escalate",
+          "timeoutSecs": 10,
+          "type": "end_then_post"
+        },
+        "success": {
+          "target": "01a0b59c-9a4a-7aa3-a750-1bba50c89836",
+          "type": "route"
+        }
+      },
+      "toolPolicy": {
+        "tools": []
+      }
+    },
+    "01a0b59c-9a4a-7aa3-a750-1b9eb897ea67": {
+      "bargeIn": true,
+      "instruction": "Confirm they are using the registered phone number, then guide them to request a fresh OTP. Success if they receive it and can proceed; failure if no OTP or account blocked.",
+      "name": "login_help",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Give a brief closing based on the reason in evidence. If the account appears blocked, mention the email support address, then say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        },
+        "success": {
+          "target": "01a0b59c-9a4a-7aa3-a750-1bba50c89836",
+          "type": "route"
+        }
+      },
+      "toolPolicy": {
+        "tools": []
+      }
+    },
+    "01a0b59c-9a4a-7aa3-a750-1bac4f948c8d": {
+      "bargeIn": true,
+      "instruction": "Tell them to recharge from Wallet using UPI or card; balance should update instantly. Ask if that answers it. Success if clear; failure if a previous recharge has not reflected.",
+      "name": "recharge_help",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Tell the caller you are raising a ticket so a specialist can check why their earlier recharge has not reflected.",
+          "post": "escalate",
+          "timeoutSecs": 10,
+          "type": "end_then_post"
+        },
+        "success": {
+          "next_instructions": "Confirm the recharge steps, thank the caller, and say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        }
+      },
+      "toolPolicy": {
+        "tools": []
+      }
+    },
+    "01a0b59c-9a4a-7aa3-a750-1bba50c89836": {
+      "bargeIn": true,
+      "instruction": "Confirm the issue is resolved and ask if they need anything else. Success if all set; failure for a new unrelated problem.",
+      "name": "resolve_confirm",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Acknowledge the new concern, let the caller know they can call back to open it as a fresh request, thank them, and say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        },
+        "success": {
+          "next_instructions": "Thank the caller for using the helpline and say a warm goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        }
+      },
+      "toolPolicy": {
+        "tools": []
+      }
+    },
+    "01a0b59c-9a4a-7aa3-a750-1bc7f8d0caba": {
+      "bargeIn": true,
+      "instruction": "Ask what they need help with. Choose one selector without reading options aloud: `upi`, `login`, `recharge`, or `fare`. Succeed once the category is clear; fail after one re-ask for abuse, silence, or non-rider support.",
+      "name": "triage",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Close politely based on the evidence. For abuse or non-support calls, end calmly. Thank them and say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        },
+        "success": {
+          "fallback": "Choose the closest selector from the caller's words; fail only if none fits.",
+          "max_misses": 3,
+          "routes": [
+            {
+              "keys": [
+                "upi",
+                "payment",
+                "refund"
+              ],
+              "target": "01a0b59c-9a4a-7aa3-a750-1beaa13488df"
+            },
+            {
+              "keys": [
+                "login",
+                "signin",
+                "otp"
+              ],
+              "target": "01a0b59c-9a4a-7aa3-a750-1b9eb897ea67"
+            },
+            {
+              "keys": [
+                "recharge",
+                "wallet",
+                "balance"
+              ],
+              "target": "01a0b59c-9a4a-7aa3-a750-1bac4f948c8d"
+            },
+            {
+              "keys": [
+                "fare",
+                "price",
+                "charge"
+              ],
+              "target": "01a0b59c-9a4a-7aa3-a750-1b869c26d253"
+            }
+          ],
+          "type": "dispatch"
+        }
+      },
+      "toolPolicy": {
+        "tools": []
+      }
+    },
+    "01a0b59c-9a4a-7aa3-a750-1bd0c6477edb": {
+      "bargeIn": true,
+      "instruction": "Explain that debited money from a failed payment auto-reverses in 5 to 7 working days. Ask if that resolves it. Success if accepted; failure if dissatisfied or asking for a human.",
+      "name": "upi_failed",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Tell the caller you are raising a ticket for a specialist to review the failed payment.",
+          "post": "escalate",
+          "timeoutSecs": 10,
+          "type": "end_then_post"
+        },
+        "success": {
+          "target": "01a0b59c-9a4a-7aa3-a750-1bba50c89836",
+          "type": "route"
+        }
+      },
+      "toolPolicy": {
+        "tools": []
+      }
+    },
+    "01a0b59c-9a4a-7aa3-a750-1beaa13488df": {
+      "bargeIn": true,
+      "instruction": "For UPI/payment issues, ask one clarifying question: failed payment or pending refund. Use selector `failed` or `refund`. Succeed once clear; fail after one re-ask for abuse, silence, or unrelated issue.",
+      "name": "upi_help",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Close politely based on the evidence, then say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        },
+        "success": {
+          "fallback": "Choose `failed` or `refund` from what the caller already said.",
+          "max_misses": 3,
+          "routes": [
+            {
+              "keys": [
+                "failed",
+                "failed_payment",
+                "debited"
+              ],
+              "target": "01a0b59c-9a4a-7aa3-a750-1bd0c6477edb"
+            },
+            {
+              "keys": [
+                "refund",
+                "pending_refund"
+              ],
+              "target": "01a0b59c-9a4a-7aa3-a750-1bf0a4bc0238"
+            }
+          ],
+          "type": "dispatch"
+        }
+      },
+      "toolPolicy": {
+        "tools": []
+      }
+    },
+    "01a0b59c-9a4a-7aa3-a750-1bf0a4bc0238": {
+      "bargeIn": true,
+      "instruction": "Explain that refunds return to the original method in 3 to 5 working days. Ask if they have waited that long. Success if timeline is accepted; failure for overdue refund or human request.",
+      "name": "upi_refund",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Tell the caller you are raising a ticket so a specialist can trace the overdue refund.",
+          "post": "escalate",
+          "timeoutSecs": 10,
+          "type": "end_then_post"
+        },
+        "success": {
+          "next_instructions": "Confirm the refund timeline, thank the caller, and say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        }
+      },
+      "toolPolicy": {
+        "tools": []
+      }
+    }
+  },
+  "start": "01a0b59c-9a4a-7aa3-a750-1bc7f8d0caba",
+  "tools": {
+    "mark_disposition": {
+      "dispatch": {
+        "handler": "capture",
+        "kind": "flow_local"
+      },
+      "policy": {
+        "async": {
+          "mode": "none"
+        },
+        "invocation": {
+          "arguments": {
+            "invalid": "The tool call arguments were invalid. Reconsider and try again, or continue the conversation."
+          },
+          "concurrency": {
+            "inFlight": "The escalation disposition is already being recorded. Wait for it to finish.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "exceeded": "The escalation disposition is already recorded. Do not call mark_disposition again.",
+            "mode": "once"
+          }
+        }
+      },
+      "schema": {
+        "description": "Record the final structured escalation after the caller-facing close.",
+        "name": "mark_disposition",
+        "parameters": {
+          "properties": {
+            "disposition": {
+              "description": "Final business result of this support interaction.",
+              "enum": [
+                "escalated"
+              ],
+              "type": "string"
+            },
+            "reason": {
+              "description": "Short reason the caller needs follow-up.",
+              "type": "string"
+            },
+            "stageReached": {
+              "description": "Furthest flow stage reached before escalation.",
+              "enum": [
+                "triage",
+                "upi_help",
+                "upi_failed",
+                "upi_refund",
+                "login_help",
+                "recharge_help",
+                "fare_dispute",
+                "resolve_confirm"
+              ],
+              "type": "string"
+            },
+            "topic": {
+              "description": "Business topic that requires specialist follow-up.",
+              "enum": [
+                "failed_payment",
+                "pending_refund",
+                "unreflected_recharge",
+                "fare_dispute"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "topic",
+            "reason",
+            "stageReached",
+            "disposition"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    "next": {
+      "dispatch": {
+        "kind": "system"
+      },
+      "policy": {
+        "async": {
+          "mode": "none"
+        },
+        "invocation": {
+          "concurrency": {
+            "inFlight": "A previous tool call is still in flight. Wait for its result before completing the step.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "mode": "unlimited"
+          }
+        }
+      },
+      "schema": {
+        "description": "Complete the current call step. Use success only when the current objective is satisfied; use failure when it is not satisfied after the required interaction handling. On dispatch stages, include selector with exactly one listed keyword.",
+        "name": "next",
+        "parameters": {
+          "properties": {
+            "evidence": {
+              "description": "Brief, specific reason for the outcome, grounded in the caller's answer or observed call event.",
+              "type": "string"
+            },
+            "outcome": {
+              "description": "Allowed outcome for completing the current instruction.",
+              "enum": [
+                "success",
+                "failure"
+              ],
+              "type": "string"
+            },
+            "selector": {
+              "description": "Optional dispatch keyword. Set this only when the current instruction explicitly lists selector keywords; copy exactly one listed keyword.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "outcome",
+            "evidence"
+          ],
+          "type": "object"
+        },
+        "response": {
+          "properties": {
+            "next_instructions": {
+              "type": "string"
+            },
+            "success": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "success",
+            "next_instructions"
+          ],
+          "type": "object"
+        }
+      }
+    }
+  }
+}

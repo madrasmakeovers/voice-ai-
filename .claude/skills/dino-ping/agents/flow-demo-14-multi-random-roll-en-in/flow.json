@@ -1,0 +1,189 @@
+{
+  "contractVersion": "0.1.0",
+  "guidance": {
+    "notAllowed": "That tool is not available in this step. Continue the conversation using the available tools.",
+    "unknownTool": "That tool is not available. Continue using the tools that are available for this step."
+  },
+  "initiate": false,
+  "integrations": {
+    "019f19a1-36ce-7f28-90e4-261426d1e27c": {
+      "configuration": {},
+      "id": "019f19a1-36ce-7f28-90e4-261426d1e27c",
+      "label": "random number",
+      "operations": [
+        "roll"
+      ],
+      "pluginRef": "demo_wasm_random_number.wasm"
+    }
+  },
+  "lifecycleAudio": {
+    "ending": {
+      "audio": "time_limit.opus",
+      "timeoutMs": 5169
+    },
+    "error": {
+      "audio": "error.opus",
+      "timeoutMs": 5769
+    },
+    "greeting": "greeting.opus",
+    "idle": {
+      "audio": "idle_warning.opus",
+      "playbackTimeoutMs": 3289,
+      "responseWaitMs": 10000,
+      "silenceBeforeMs": 12000
+    }
+  },
+  "persona": "You are Aria, a concise multi-random-number demo assistant. Speak in short Indian English turns. A tool request being accepted or scheduled is only an acknowledgement, never a random number. Wait for each separate result, read that exact number to the caller, then ask whether they would like another number and wait for their answer. Only request another number after the caller clearly says yes. If they say no, close the demo normally. If the tool is no longer allowed, never retry it: say that you cannot generate another number, then close the demo.",
+  "stages": {
+    "01a0b5ae-eca9-7682-b6bc-09012d195f8c": {
+      "bargeIn": true,
+      "instruction": "Ask for one whole-number upper bound from 1 to 1000000. Use that same max for the whole demo. Call roll_number, wait for the separate result 'The random number is N.', and read that exact number to the caller. After every result, ask whether the caller would like another number and wait for their answer. Do not call roll_number again unless the caller clearly says yes. If they say yes, call it again with the same max. If they say no, use next with success. If a roll_number call is rejected because the tool is no longer allowed, do not retry: briefly say that you cannot generate another number, then use next with success. Use next with failure for refusal to provide the initial bound, silence, off-topic input, an invalid bound after one re-ask, timeout, or integration failure.",
+      "name": "roll_until_rejected",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Briefly say the multi-random-number demo could not be completed, then say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        },
+        "success": {
+          "next_instructions": "Thank the caller and say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        }
+      },
+      "toolPolicy": {
+        "tools": [
+          "roll_number"
+        ]
+      }
+    }
+  },
+  "start": "01a0b5ae-eca9-7682-b6bc-09012d195f8c",
+  "tools": {
+    "next": {
+      "dispatch": {
+        "kind": "system"
+      },
+      "policy": {
+        "async": {
+          "mode": "none"
+        },
+        "invocation": {
+          "concurrency": {
+            "inFlight": "A previous tool call is still in flight. Wait for its result before completing the step.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "mode": "unlimited"
+          }
+        }
+      },
+      "schema": {
+        "description": "Complete the demo after the caller declines another number, after roll_number is rejected as no longer allowed, or after a genuine failure. Never call next after merely accepting or scheduling a number request.",
+        "name": "next",
+        "parameters": {
+          "properties": {
+            "evidence": {
+              "description": "Brief, specific reason for the outcome, grounded in the caller declining another number, the tool becoming unavailable, or a genuine failure.",
+              "type": "string"
+            },
+            "outcome": {
+              "description": "Allowed outcome for completing the current instruction.",
+              "enum": [
+                "success",
+                "failure"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "outcome",
+            "evidence"
+          ],
+          "type": "object"
+        },
+        "response": {
+          "properties": {
+            "next_instructions": {
+              "type": "string"
+            },
+            "success": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "success",
+            "next_instructions"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    "roll_number": {
+      "dispatch": {
+        "integrationId": "019f19a1-36ce-7f28-90e4-261426d1e27c",
+        "kind": "integration",
+        "operation": "roll"
+      },
+      "policy": {
+        "async": {
+          "mode": "wait_for_result",
+          "staleResult": {
+            "mode": "drop"
+          },
+          "timeout": {
+            "secs": 20
+          }
+        },
+        "integrationHostFailureGuidance": {
+          "internal": "The integration could not be completed. Tell the caller the demo could not complete and use next with failure.",
+          "sandboxViolation": "The integration could not complete safely. Tell the caller the demo could not complete and use next with failure.",
+          "timedOut": "The random-number integration timed out. Tell the caller the demo could not complete and use next with failure.",
+          "unavailable": "The integration service is temporarily unavailable. Tell the caller the demo could not complete and use next with failure."
+        },
+        "invocation": {
+          "concurrency": {
+            "inFlight": "The previous random-number request is still running. Wait for its result before requesting another number.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "exceeded": "The random-number tool is no longer allowed in this step. Do not call it again. Tell the caller that you cannot generate another number, then use next with success.",
+            "max": 3,
+            "mode": "max"
+          }
+        }
+      },
+      "schema": {
+        "description": "Schedule one random integer from 1 through the provided inclusive upper bound. After announcing the separate result, ask whether the caller wants another number. Call this tool again only after the caller clearly says yes.",
+        "name": "roll_number",
+        "parameters": {
+          "properties": {
+            "max": {
+              "description": "Inclusive upper bound for each random number. Must be from 1 through 1000000.",
+              "maximum": 1000000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "max"
+          ],
+          "type": "object"
+        },
+        "response": {
+          "description": "The request acknowledgement.",
+          "properties": {
+            "success": {
+              "description": "true means validation accepted the request and the execution result will be injected shortly. A policy or validation rejection is returned as a function error.",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "success"
+          ],
+          "type": "object"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+name = "F10 - Fire-and-Forget Post"
+description = "Memory-backed support flow relays a post-call note and captures disposition."
+model = "gemini-3.8-live"
+voice = "Leda"
+language = "en-IN"
+temperature = 0.4
+
+[[placeholders]]
+key = "account"
+kind = "vox_text"
+description = "Support account name used in demo wording"
+default = "Namma Yatri"

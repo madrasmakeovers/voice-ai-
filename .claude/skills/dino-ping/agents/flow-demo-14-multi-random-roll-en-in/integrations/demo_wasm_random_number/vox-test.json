@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 3,
+  "cases": [
+    {
+      "name": "roll-with-single-outcome",
+      "operation": "roll",
+      "args": { "max": 1 },
+      "record": {},
+      "context": {},
+      "config": {},
+      "expected": {
+        "validation": { "verdict": "accepted", "data": null },
+        "execution": { "verdict": "completed", "data": "The random number is 1." }
+      }
+    },
+    {
+      "name": "reject-out-of-range-bound",
+      "operation": "roll",
+      "args": { "max": 1000001 },
+      "record": {},
+      "context": {},
+      "config": {},
+      "expected": {
+        "validation": {
+          "verdict": "rejected",
+          "reason": "arguments.max must be from 1 through 1000000"
+        }
+      }
+    }
+  ]
+}

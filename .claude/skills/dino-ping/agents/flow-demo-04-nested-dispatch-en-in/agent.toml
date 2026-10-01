@@ -1,0 +1,6 @@
+name = "F04 - Nested Dispatch"
+description = "Nested dispatch routes a subtopic and captures structured escalation."
+model = "gemini-3.8-live"
+voice = "Leda"
+language = "en-IN"
+temperature = 0.4

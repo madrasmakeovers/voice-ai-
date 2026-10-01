@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 3,
+  "cases": [
+    {
+      "name": "roll-with-single-outcome",
+      "operation": "roll",
+      "args": { "max": 1 },
+      "record": {},
+      "context": {},
+      "config": {},
+      "expected": {
+        "validation": {
+          "verdict": "accepted",
+          "data": {
+            "ready": true,
+            "operation": "roll",
+            "next": "wait_for_random_number"
+          }
+        },
+        "execution": { "verdict": "completed", "data": "The random number is 1." }
+      }
+    }
+  ]
+}

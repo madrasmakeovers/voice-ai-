@@ -1,0 +1,194 @@
+{
+  "contractVersion": "0.1.0",
+  "guidance": {
+    "notAllowed": "That tool is not available in this step. Continue the conversation using the available tools.",
+    "unknownTool": "That tool is not available. Continue using the tools that are available for this step."
+  },
+  "initiate": true,
+  "lifecycleAudio": {
+    "ending": {
+      "audio": "time_limit.opus",
+      "timeoutMs": 5169
+    },
+    "error": {
+      "audio": "error.opus",
+      "timeoutMs": 5769
+    },
+    "greeting": "greeting.opus",
+    "idle": {
+      "audio": "idle_warning.opus",
+      "playbackTimeoutMs": 3289,
+      "responseWaitMs": 10000,
+      "silenceBeforeMs": 12000
+    }
+  },
+  "persona": "You are Aria for a case-logging demo. Handle the caller's issue in short Indian English turns, then log the outcome off-mic.",
+  "posts": {
+    "record_escalation": {
+      "instruction": "Call mark_disposition once with stageReached set to resolve_case, disposition set to escalated, a concise reason, and a short transcript-grounded summary.",
+      "timeoutSecs": 20,
+      "toolPolicy": {
+        "tools": [
+          "mark_disposition"
+        ]
+      }
+    },
+    "record_resolution": {
+      "instruction": "Call mark_disposition once with stageReached set to resolve_case, disposition set to resolved, a concise reason, and a short transcript-grounded summary.",
+      "timeoutSecs": 20,
+      "toolPolicy": {
+        "tools": [
+          "mark_disposition"
+        ]
+      }
+    }
+  },
+  "stages": {
+    "01a0b59d-4417-7630-841b-8632bc1e205a": {
+      "bargeIn": true,
+      "instruction": "Ask whether their issue is resolved now. Succeed if they say yes. Fail if they say no, want follow-up, or remain unclear after one re-ask.",
+      "name": "resolve_case",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Tell the caller the case will be escalated for follow-up, thank them, and say goodbye.",
+          "post": "record_escalation",
+          "timeoutSecs": 10,
+          "type": "end_then_post"
+        },
+        "success": {
+          "next_instructions": "Thank the caller, say the case is resolved, and say goodbye.",
+          "post": "record_resolution",
+          "timeoutSecs": 10,
+          "type": "end_then_post"
+        }
+      },
+      "toolPolicy": {
+        "tools": []
+      }
+    }
+  },
+  "start": "01a0b59d-4417-7630-841b-8632bc1e205a",
+  "tools": {
+    "mark_disposition": {
+      "dispatch": {
+        "handler": "capture",
+        "kind": "flow_local"
+      },
+      "policy": {
+        "async": {
+          "mode": "none"
+        },
+        "invocation": {
+          "arguments": {
+            "invalid": "The tool call arguments were invalid. Reconsider and try again, or continue the conversation."
+          },
+          "concurrency": {
+            "inFlight": "The case disposition is already being recorded. Wait for it to finish.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "exceeded": "The case disposition is already recorded. Do not call mark_disposition again.",
+            "mode": "once"
+          }
+        }
+      },
+      "schema": {
+        "description": "Record the final structured disposition selected by the terminal post.",
+        "name": "mark_disposition",
+        "parameters": {
+          "properties": {
+            "disposition": {
+              "description": "Final business result of the case.",
+              "enum": [
+                "resolved",
+                "escalated"
+              ],
+              "type": "string"
+            },
+            "reason": {
+              "description": "Why this disposition was reached.",
+              "type": "string"
+            },
+            "stageReached": {
+              "description": "Furthest flow stage reached before the call closed.",
+              "enum": [
+                "resolve_case"
+              ],
+              "type": "string"
+            },
+            "summary": {
+              "description": "Short transcript-grounded case summary.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "stageReached",
+            "disposition",
+            "reason",
+            "summary"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    "next": {
+      "dispatch": {
+        "kind": "system"
+      },
+      "policy": {
+        "async": {
+          "mode": "none"
+        },
+        "invocation": {
+          "concurrency": {
+            "inFlight": "A previous tool call is still in flight. Wait for its result before completing the step.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "mode": "unlimited"
+          }
+        }
+      },
+      "schema": {
+        "description": "Complete the current call step. Use success for resolved cases and failure for unresolved cases.",
+        "name": "next",
+        "parameters": {
+          "properties": {
+            "evidence": {
+              "description": "Brief, specific reason for the outcome.",
+              "type": "string"
+            },
+            "outcome": {
+              "description": "Allowed outcome for completing the current instruction.",
+              "enum": [
+                "success",
+                "failure"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "outcome",
+            "evidence"
+          ],
+          "type": "object"
+        },
+        "response": {
+          "properties": {
+            "next_instructions": {
+              "type": "string"
+            },
+            "success": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "success",
+            "next_instructions"
+          ],
+          "type": "object"
+        }
+      }
+    }
+  }
+}

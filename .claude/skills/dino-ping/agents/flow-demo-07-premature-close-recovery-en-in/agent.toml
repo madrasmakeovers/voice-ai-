@@ -1,0 +1,6 @@
+name = "F07 - Premature Close Recovery"
+description = "Early caller hangup triggers a dedicated premature-close capture post."
+model = "gemini-3.8-live"
+voice = "Leda"
+language = "en-IN"
+temperature = 0.4

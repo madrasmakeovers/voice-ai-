@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 3,
+  "cases": [
+    {
+      "name": "lookup-known-customer",
+      "operation": "lookup_customer",
+      "args": {},
+      "record": { "unique_id": "C-1001", "customer_name": "Ravi Kumar" },
+      "phone": "+12025550100",
+      "context": {},
+      "config": {},
+      "expected": {
+        "validation": {
+          "verdict": "accepted",
+          "data": {
+            "ready": true,
+            "operation": "lookup_customer",
+            "next": "wait_for_customer_profile"
+          }
+        },
+        "execution": {
+          "verdict": "completed",
+          "data": {
+            "uniqueId": "C-1001",
+            "found": true,
+            "profile": { "name": "Ravi Kumar" }
+          }
+        }
+      }
+    },
+    {
+      "name": "send-message-with-private-context",
+      "operation": "send_message",
+      "args": {
+        "message": "Your requested update is complete."
+      },
+      "record": { "unique_id": "C-1001", "customer_name": "Ravi Kumar" },
+      "context": { "recipient_phone": "+61400000001" },
+      "config": {},
+      "expected": {
+        "validation": {
+          "verdict": "accepted",
+          "data": {
+            "ready": true,
+            "operation": "send_message",
+            "next": "wait_for_delivery_result"
+          }
+        },
+        "execution": {
+          "verdict": "completed",
+          "data": {
+            "sent": true,
+            "uniqueId": "C-1001",
+            "recipientPhone": "+61400000001"
+          }
+        }
+      }
+    }
+  ]
+}

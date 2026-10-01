@@ -1,0 +1,277 @@
+{
+  "contractVersion": "0.1.0",
+  "guidance": {
+    "notAllowed": "That tool is not available in this step. Continue the conversation using the available tools.",
+    "unknownTool": "That tool is not available. Continue using the tools that are available for this step."
+  },
+  "initiate": true,
+  "integrations": {
+    "019f19a1-36c5-700d-96e4-a64a5e9edfbe": {
+      "configuration": {},
+      "id": "019f19a1-36c5-700d-96e4-a64a5e9edfbe",
+      "label": "demo crm",
+      "operations": [
+        "lookup_customer_info",
+        "verify_pin"
+      ],
+      "pluginRef": "demo_crm_embedded.wasm"
+    }
+  },
+  "lifecycleAudio": {
+    "ending": {
+      "audio": "time_limit.opus",
+      "timeoutMs": 5169
+    },
+    "error": {
+      "audio": "error.opus",
+      "timeoutMs": 5769
+    },
+    "greeting": "greeting.opus",
+    "idle": {
+      "audio": "idle_warning.opus",
+      "playbackTimeoutMs": 3289,
+      "responseWaitMs": 10000,
+      "silenceBeforeMs": 12000
+    }
+  },
+  "persona": "You are Aria for the [[account]] team, demonstrating live account integrations in short Indian English turns. Never invent tool results.",
+  "stages": {
+    "01a0b5a3-4e78-7513-b048-3291d6d2f45f": {
+      "bargeIn": true,
+      "instruction": "Ask which account detail they need, then call lookup_customer_info once. Wait for the actual lookup result. Read the returned detail, then succeed; fail for no request or failed lookup.",
+      "name": "account_details",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Tell the caller the account details could not be retrieved, then goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        },
+        "success": {
+          "next_instructions": "Thank the caller and say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        }
+      },
+      "toolPolicy": {
+        "tools": [
+          "lookup_customer_info"
+        ]
+      }
+    },
+    "01a0b5a3-4e78-7513-b048-32af582658fc": {
+      "bargeIn": true,
+      "instruction": "Ask for the caller's 4-digit PIN, read it back, then call verify_pin once. Wait for the actual verification result. Succeed only if it says the PIN was verified; fail for refusal, invalid PIN, or failed verification.",
+      "name": "verify_customer",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Say verification could not be completed, thank them, and say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        },
+        "success": {
+          "target": "01a0b5a3-4e78-7513-b048-3291d6d2f45f",
+          "type": "route"
+        }
+      },
+      "toolPolicy": {
+        "tools": [
+          "verify_pin"
+        ]
+      }
+    }
+  },
+  "start": "01a0b5a3-4e78-7513-b048-32af582658fc",
+  "tools": {
+    "lookup_customer_info": {
+      "dispatch": {
+        "integrationId": "019f19a1-36c5-700d-96e4-a64a5e9edfbe",
+        "kind": "integration",
+        "operation": "lookup_customer_info"
+      },
+      "policy": {
+        "async": {
+          "mode": "wait_for_result",
+          "staleResult": {
+            "mode": "drop"
+          },
+          "timeout": {
+            "secs": 25
+          }
+        },
+        "integrationHostFailureGuidance": {
+          "internal": "The integration could not be completed. Tell the caller, then follow the current step's failure instructions.",
+          "sandboxViolation": "The integration could not complete safely. Tell the caller the request could not be completed, then follow the current step's failure instructions.",
+          "timedOut": "The account details lookup timed out. Tell the caller the details could not be retrieved and use next with failure.",
+          "unavailable": "The integration service is temporarily unavailable. Tell the caller the request could not be completed, then follow the current step's failure instructions."
+        },
+        "invocation": {
+          "concurrency": {
+            "inFlight": "I'm still working on your previous request — give me a moment.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "exceeded": "That tool has already run for this step. Continue the conversation.",
+            "mode": "once"
+          }
+        }
+      },
+      "schema": {
+        "description": "Fetch one hardcoded demo account detail after PIN verification.",
+        "name": "lookup_customer_info",
+        "parameters": {
+          "properties": {
+            "detail": {
+              "description": "The account detail the caller asked for. Use account_status for whether the account is active, plan for the service plan, balance_due for outstanding amount or balance, last_payment for the most recent payment, and support_note for open support tickets or service notes.",
+              "enum": [
+                "account_status",
+                "plan",
+                "balance_due",
+                "last_payment",
+                "support_note"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "detail"
+          ],
+          "type": "object"
+        },
+        "response": {
+          "properties": {
+            "success": {
+              "description": "true means the request was accepted and is processing; wait for the injected result. false means rejected; no result will arrive.",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "success"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    "next": {
+      "dispatch": {
+        "kind": "system"
+      },
+      "policy": {
+        "async": {
+          "mode": "none"
+        },
+        "invocation": {
+          "concurrency": {
+            "inFlight": "A previous tool call is still in flight. Wait for its result before completing the step.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "mode": "unlimited"
+          }
+        }
+      },
+      "schema": {
+        "description": "Complete the current stage only after required caller interaction and tool results are done. Do not call next after only an accepted/scheduled tool acknowledgement.",
+        "name": "next",
+        "parameters": {
+          "properties": {
+            "evidence": {
+              "description": "Brief, specific reason for the outcome, grounded in the caller's answer or a tool result.",
+              "type": "string"
+            },
+            "outcome": {
+              "description": "Allowed outcome for completing the current instruction.",
+              "enum": [
+                "success",
+                "failure"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "outcome",
+            "evidence"
+          ],
+          "type": "object"
+        },
+        "response": {
+          "properties": {
+            "next_instructions": {
+              "type": "string"
+            },
+            "success": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "success",
+            "next_instructions"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    "verify_pin": {
+      "dispatch": {
+        "integrationId": "019f19a1-36c5-700d-96e4-a64a5e9edfbe",
+        "kind": "integration",
+        "operation": "verify_pin"
+      },
+      "policy": {
+        "async": {
+          "mode": "wait_for_result",
+          "staleResult": {
+            "mode": "drop"
+          },
+          "timeout": {
+            "secs": 20
+          }
+        },
+        "integrationHostFailureGuidance": {
+          "internal": "The integration could not be completed. Tell the caller, then follow the current step's failure instructions.",
+          "sandboxViolation": "The integration could not complete safely. Tell the caller the request could not be completed, then follow the current step's failure instructions.",
+          "timedOut": "The PIN check timed out. Tell the caller verification could not be completed and use next with failure.",
+          "unavailable": "The integration service is temporarily unavailable. Tell the caller the request could not be completed, then follow the current step's failure instructions."
+        },
+        "invocation": {
+          "concurrency": {
+            "inFlight": "I'm still working on your previous request — give me a moment.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "exceeded": "That tool has already run for this step. Continue the conversation.",
+            "mode": "once"
+          }
+        }
+      },
+      "schema": {
+        "description": "Verify a caller's confirmed 4-digit PIN.",
+        "name": "verify_pin",
+        "parameters": {
+          "properties": {
+            "pin": {
+              "description": "The caller-confirmed 4-digit PIN.",
+              "pattern": "^[0-9]{4}$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "pin"
+          ],
+          "type": "object"
+        },
+        "response": {
+          "properties": {
+            "success": {
+              "description": "true means the request was accepted and is processing; wait for the injected result. false means rejected; no result will arrive.",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "success"
+          ],
+          "type": "object"
+        }
+      }
+    }
+  }
+}

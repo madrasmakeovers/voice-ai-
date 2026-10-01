@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 3,
+  "cases": [
+    {
+      "name": "check-server-error-status",
+      "operation": "check_otp_status",
+      "args": {
+        "registered_mobile": "+61400000000",
+        "app_version": "1.2.3"
+      },
+      "record": {},
+      "context": {},
+      "config": {},
+      "expected": {
+        "validation": {
+          "verdict": "accepted",
+          "data": "The OTP-status check was accepted for background execution."
+        },
+        "execution": {
+          "verdict": "completed",
+          "data": {
+            "status": "server_error",
+            "registeredMobile": "+61400000000",
+            "source": "demo_bpp_dashboard"
+          }
+        }
+      }
+    },
+    {
+      "name": "log-escalated-note",
+      "operation": "log_kapture_note",
+      "args": {
+        "registered_mobile": "+61400000001",
+        "issue_type": "login_otp_not_generated",
+        "resolution_status": "escalated",
+        "notes": "Caller still cannot receive the login OTP."
+      },
+      "record": {},
+      "context": {},
+      "config": {},
+      "expected": {
+        "validation": {
+          "verdict": "accepted",
+          "data": "The support note was accepted for background execution."
+        },
+        "execution": {
+          "verdict": "completed",
+          "data": {
+            "accepted": true,
+            "ticketId": "KAP-OTP-2048",
+            "disposition": "escalated"
+          }
+        }
+      }
+    },
+    {
+      "name": "reject-invalid-mobile",
+      "operation": "check_otp_status",
+      "args": { "registered_mobile": "123", "app_version": "1.2.3" },
+      "record": {},
+      "context": {},
+      "config": {},
+      "expected": {
+        "validation": {
+          "verdict": "rejected",
+          "reason": "registered_mobile must be a valid phone number"
+        }
+      }
+    }
+  ]
+}

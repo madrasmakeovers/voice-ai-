@@ -1,0 +1,180 @@
+{
+  "contractVersion": "0.1.0",
+  "guidance": {
+    "notAllowed": "That tool is not available in this step. Continue the conversation using the available tools.",
+    "unknownTool": "That tool is not available. Continue using the tools that are available for this step."
+  },
+  "initiate": true,
+  "lifecycleAudio": {
+    "ending": {
+      "audio": "time_limit.opus",
+      "timeoutMs": 5169
+    },
+    "error": {
+      "audio": "error.opus",
+      "timeoutMs": 5769
+    },
+    "greeting": "greeting.opus",
+    "idle": {
+      "audio": "idle_warning.opus",
+      "playbackTimeoutMs": 3289,
+      "responseWaitMs": 10000,
+      "silenceBeforeMs": 12000
+    }
+  },
+  "onPrematureTransportClose": "record_abandoned_call",
+  "persona": "You are Aria for an abandoned-call recovery demo. Speak in short Indian English turns and help the caller before they drop off.",
+  "posts": {
+    "record_abandoned_call": {
+      "instruction": "Call mark_premature_close once with stageReached, lastSignal, and a short transcript-grounded summary.",
+      "timeoutSecs": 20,
+      "toolPolicy": {
+        "tools": [
+          "mark_premature_close"
+        ]
+      }
+    }
+  },
+  "stages": {
+    "01a0b59d-aca9-77d3-b1b8-fe107dd045d8": {
+      "bargeIn": true,
+      "instruction": "Ask what issue they need help with and collect one sentence of context. Succeed once context is clear; fail for abuse, silence, or unrelated requests after one re-ask.",
+      "name": "collect_issue",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Say this demo could not capture the issue, thank the caller, and say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        },
+        "success": {
+          "next_instructions": "Say the issue context has been captured, thank the caller, and say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        }
+      },
+      "toolPolicy": {
+        "tools": []
+      }
+    }
+  },
+  "start": "01a0b59d-aca9-77d3-b1b8-fe107dd045d8",
+  "tools": {
+    "mark_premature_close": {
+      "dispatch": {
+        "handler": "capture",
+        "kind": "flow_local"
+      },
+      "policy": {
+        "async": {
+          "mode": "none"
+        },
+        "invocation": {
+          "arguments": {
+            "invalid": "The tool call arguments were invalid. Reconsider and try again, or continue the conversation."
+          },
+          "concurrency": {
+            "inFlight": "The premature-close record is already being written. Wait for it to finish.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "exceeded": "The premature-close record already exists. Do not call mark_premature_close again.",
+            "mode": "once"
+          }
+        }
+      },
+      "schema": {
+        "description": "Record a dedicated signal when the caller disconnects before a terminal outcome.",
+        "name": "mark_premature_close",
+        "parameters": {
+          "properties": {
+            "lastSignal": {
+              "description": "Clearest caller signal available before disconnect.",
+              "enum": [
+                "issue_partially_described",
+                "silence",
+                "caller_disconnected"
+              ],
+              "type": "string"
+            },
+            "stageReached": {
+              "description": "Furthest flow stage reached before disconnect.",
+              "enum": [
+                "collect_issue"
+              ],
+              "type": "string"
+            },
+            "summary": {
+              "description": "Short transcript-based summary of what was known before hangup.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "stageReached",
+            "lastSignal",
+            "summary"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    "next": {
+      "dispatch": {
+        "kind": "system"
+      },
+      "policy": {
+        "async": {
+          "mode": "none"
+        },
+        "invocation": {
+          "concurrency": {
+            "inFlight": "A previous tool call is still in flight. Wait for its result before completing the step.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "mode": "unlimited"
+          }
+        }
+      },
+      "schema": {
+        "description": "Complete the current call step after collecting enough issue context.",
+        "name": "next",
+        "parameters": {
+          "properties": {
+            "evidence": {
+              "description": "Brief, specific reason for the outcome.",
+              "type": "string"
+            },
+            "outcome": {
+              "description": "Allowed outcome for completing the current instruction.",
+              "enum": [
+                "success",
+                "failure"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "outcome",
+            "evidence"
+          ],
+          "type": "object"
+        },
+        "response": {
+          "properties": {
+            "next_instructions": {
+              "type": "string"
+            },
+            "success": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "success",
+            "next_instructions"
+          ],
+          "type": "object"
+        }
+      }
+    }
+  }
+}

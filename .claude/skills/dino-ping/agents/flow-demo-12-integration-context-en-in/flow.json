@@ -1,0 +1,190 @@
+{
+  "contractVersion": "0.1.0",
+  "guidance": {
+    "notAllowed": "That tool is not available in this step. Continue the conversation using the available tools.",
+    "unknownTool": "That tool is not available. Continue using the tools that are available for this step."
+  },
+  "initiate": true,
+  "integrations": {
+    "019f19a1-36cd-7795-ad29-6aae7fbb65bb": {
+      "configuration": {},
+      "id": "019f19a1-36cd-7795-ad29-6aae7fbb65bb",
+      "label": "demo crm",
+      "operations": [
+        "send_message"
+      ],
+      "pluginRef": "demo_crm_embedded.wasm"
+    }
+  },
+  "lifecycleAudio": {
+    "ending": {
+      "audio": "time_limit.opus",
+      "timeoutMs": 5169
+    },
+    "error": {
+      "audio": "error.opus",
+      "timeoutMs": 5769
+    },
+    "greeting": "greeting.opus",
+    "idle": {
+      "audio": "idle_warning.opus",
+      "playbackTimeoutMs": 3289,
+      "responseWaitMs": 10000,
+      "silenceBeforeMs": 12000
+    }
+  },
+  "persona": "You are Aria for an integration-context demo. Help the caller in short Indian English turns, using the details the integration provides.",
+  "stages": {
+    "01a0b5ad-0558-7902-8b1e-1802ba80bc01": {
+      "bargeIn": true,
+      "instruction": "Ask for a unique ID, then call send_message once with unique_id and a short confirmation message. Do not ask for or pass account, phone, customer name, city, campaign, segment, or locale. Wait for the actual result, then read the message id, recipient phone, and context snapshot from the returned result.",
+      "name": "send_context_message",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Say the context-backed message could not be completed, thank the caller, and say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        },
+        "success": {
+          "next_instructions": "Say this demonstrates integration context, thank the caller, and say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        }
+      },
+      "toolPolicy": {
+        "tools": [
+          "send_message"
+        ]
+      }
+    }
+  },
+  "start": "01a0b5ad-0558-7902-8b1e-1802ba80bc01",
+  "tools": {
+    "next": {
+      "dispatch": {
+        "kind": "system"
+      },
+      "policy": {
+        "async": {
+          "mode": "none"
+        },
+        "invocation": {
+          "concurrency": {
+            "inFlight": "A previous tool call is still in flight. Wait for its result before completing the step.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "mode": "unlimited"
+          }
+        }
+      },
+      "schema": {
+        "description": "Complete the current stage only after required caller interaction and tool results are done. Do not call next after only an accepted/scheduled tool acknowledgement.",
+        "name": "next",
+        "parameters": {
+          "properties": {
+            "evidence": {
+              "description": "Brief, specific reason for the outcome.",
+              "type": "string"
+            },
+            "outcome": {
+              "description": "Allowed outcome for completing the current instruction.",
+              "enum": [
+                "success",
+                "failure"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "outcome",
+            "evidence"
+          ],
+          "type": "object"
+        },
+        "response": {
+          "properties": {
+            "next_instructions": {
+              "type": "string"
+            },
+            "success": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "success",
+            "next_instructions"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    "send_message": {
+      "dispatch": {
+        "integrationId": "019f19a1-36cd-7795-ad29-6aae7fbb65bb",
+        "kind": "integration",
+        "operation": "send_message"
+      },
+      "policy": {
+        "async": {
+          "mode": "wait_for_result",
+          "staleResult": {
+            "mode": "drop"
+          },
+          "timeout": {
+            "secs": 20
+          }
+        },
+        "integrationHostFailureGuidance": {
+          "internal": "The integration could not be completed. Tell the caller, then follow the current step's failure instructions.",
+          "sandboxViolation": "The integration could not complete safely. Tell the caller the request could not be completed, then follow the current step's failure instructions.",
+          "timedOut": "The context-backed message request timed out. Tell the caller the message could not be queued and use next with failure.",
+          "unavailable": "The integration service is temporarily unavailable. Tell the caller the request could not be completed, then follow the current step's failure instructions."
+        },
+        "invocation": {
+          "concurrency": {
+            "inFlight": "I'm still working on your previous request — give me a moment.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "exceeded": "That tool has already run for this step. Continue the conversation.",
+            "mode": "once"
+          }
+        }
+      },
+      "schema": {
+        "description": "Send a short confirmation message. Do not include account, recipient_phone, customer_name, city, campaign_id, segment, or locale; Command supplies them from trusted process/contact context.",
+        "name": "send_message",
+        "parameters": {
+          "properties": {
+            "message": {
+              "description": "The short message to send.",
+              "type": "string"
+            },
+            "unique_id": {
+              "description": "The unique ID, for example C-1001.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "unique_id",
+            "message"
+          ],
+          "type": "object"
+        },
+        "response": {
+          "properties": {
+            "success": {
+              "description": "true means the request was accepted and is processing; wait for the injected result.",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "success"
+          ],
+          "type": "object"
+        }
+      }
+    }
+  }
+}

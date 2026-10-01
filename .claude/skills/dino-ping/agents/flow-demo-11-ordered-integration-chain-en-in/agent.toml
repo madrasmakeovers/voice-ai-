@@ -1,0 +1,12 @@
+name = "F11 - Ordered Integration Chain"
+description = "Dispatch selects a strict chain across two agent-owned integrations."
+model = "gemini-3.8-live"
+voice = "Leda"
+language = "en-IN"
+temperature = 0.4
+
+[[placeholders]]
+key = "account"
+kind = "vox_text"
+description = "Account slug, forwarded to integrations as context"
+default = "acme-demo"

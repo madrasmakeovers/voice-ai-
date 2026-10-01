@@ -1,0 +1,6 @@
+schema_version = 1
+name = "demo_wasm_random_number"
+language = "rust"
+abi = "vox:integration/plugin@0.2.0"
+plugin_ref = "demo_wasm_random_number.wasm"
+operations = ["roll"]

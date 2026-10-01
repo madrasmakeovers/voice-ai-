@@ -1,0 +1,395 @@
+{
+  "contractVersion": "0.1.0",
+  "guidance": {
+    "notAllowed": "That tool is not available in this step. Continue the conversation using the available tools.",
+    "unknownTool": "That tool is not available. Continue using the tools that are available for this step."
+  },
+  "initiate": true,
+  "integrations": {
+    "019f19a1-36ca-754d-ac43-e8849a017de9": {
+      "configuration": {},
+      "id": "019f19a1-36ca-754d-ac43-e8849a017de9",
+      "label": "demo crm",
+      "operations": [
+        "lookup_customer",
+        "send_message"
+      ],
+      "pluginRef": "demo_crm_embedded.wasm"
+    },
+    "019f19a1-36cb-7e05-9e29-afd8dea3aff0": {
+      "configuration": {},
+      "id": "019f19a1-36cb-7e05-9e29-afd8dea3aff0",
+      "label": "random number",
+      "operations": [
+        "roll"
+      ],
+      "pluginRef": "demo_wasm_random_number.wasm"
+    }
+  },
+  "lifecycleAudio": {
+    "ending": {
+      "audio": "time_limit.opus",
+      "timeoutMs": 5169
+    },
+    "error": {
+      "audio": "error.opus",
+      "timeoutMs": 5769
+    },
+    "greeting": "greeting.opus",
+    "idle": {
+      "audio": "idle_warning.opus",
+      "playbackTimeoutMs": 3289,
+      "responseWaitMs": 10000,
+      "silenceBeforeMs": 12000
+    }
+  },
+  "persona": "You are Aria for the [[account]] team, demonstrating routing and chained integrations in short Indian English turns. Never invent tool results.",
+  "stages": {
+    "01a0abd3-2c7d-7d52-9a12-034b84d312f5": {
+      "bargeIn": true,
+      "instruction": "Call lookup_customer once with the unique ID. Wait for the actual result, then summarize found/not found plus name and tier if present. Succeed only after reading the result.",
+      "name": "lookup_only",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Say the customer lookup could not be completed, then goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        },
+        "success": {
+          "next_instructions": "Thank the caller and say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        }
+      },
+      "toolPolicy": {
+        "tools": [
+          "lookup_customer"
+        ]
+      }
+    },
+    "01a0abd3-2c7d-7d52-9a12-0353f34f4d56": {
+      "bargeIn": true,
+      "instruction": "Run this chain in order: lookup_customer, roll_number with max 9999, then send_message with the unique ID and generated offer code. Wait for each actual result before the next tool call. Succeed only after reading the send result.",
+      "name": "offer_confirmation",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Say the integration chain could not be completed, then goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        },
+        "success": {
+          "next_instructions": "Say that completes the routed tool-chain demo. Thank them and goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        }
+      },
+      "toolPolicy": {
+        "tools": [
+          "lookup_customer",
+          "roll_number",
+          "send_message"
+        ]
+      }
+    },
+    "01a0abd3-2c7d-7d52-9a12-036ad3fca1d5": {
+      "bargeIn": true,
+      "instruction": "Ask for a unique ID, e.g. C-1001, and whether they want account lookup or offer confirmation. Use selector `lookup` or `offer`; do not read selectors aloud. Fail for refusal, silence, or no unique ID after one re-ask.",
+      "name": "route_request",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Briefly say you need a unique ID to run the demo, then thank them and goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        },
+        "success": {
+          "fallback": "Use `lookup` for account details; use `offer` for offer code plus confirmation.",
+          "max_misses": 3,
+          "routes": [
+            {
+              "keys": [
+                "lookup",
+                "account",
+                "profile",
+                "details"
+              ],
+              "target": "01a0abd3-2c7d-7d52-9a12-034b84d312f5"
+            },
+            {
+              "keys": [
+                "offer",
+                "code",
+                "confirmation",
+                "message"
+              ],
+              "target": "01a0abd3-2c7d-7d52-9a12-0353f34f4d56"
+            }
+          ],
+          "type": "dispatch"
+        }
+      },
+      "toolPolicy": {
+        "tools": []
+      }
+    }
+  },
+  "start": "01a0abd3-2c7d-7d52-9a12-036ad3fca1d5",
+  "tools": {
+    "lookup_customer": {
+      "dispatch": {
+        "integrationId": "019f19a1-36ca-754d-ac43-e8849a017de9",
+        "kind": "integration",
+        "operation": "lookup_customer"
+      },
+      "policy": {
+        "async": {
+          "mode": "wait_for_result",
+          "staleResult": {
+            "mode": "drop"
+          },
+          "timeout": {
+            "secs": 20
+          }
+        },
+        "integrationHostFailureGuidance": {
+          "internal": "The integration could not be completed. Tell the caller, then follow the current step's failure instructions.",
+          "sandboxViolation": "The integration could not complete safely. Tell the caller the request could not be completed, then follow the current step's failure instructions.",
+          "timedOut": "The customer lookup timed out. Tell the caller the lookup could not be completed and use next with failure.",
+          "unavailable": "The integration service is temporarily unavailable. Tell the caller the request could not be completed, then follow the current step's failure instructions."
+        },
+        "invocation": {
+          "concurrency": {
+            "inFlight": "I'm still working on your previous request — give me a moment.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "exceeded": "That tool has already run for this step. Continue the conversation.",
+            "mode": "once"
+          }
+        }
+      },
+      "schema": {
+        "description": "Look up a customer record by unique ID in the CRM.",
+        "name": "lookup_customer",
+        "parameters": {
+          "properties": {
+            "unique_id": {
+              "description": "The unique ID, for example C-1001.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "unique_id"
+          ],
+          "type": "object"
+        },
+        "response": {
+          "properties": {
+            "success": {
+              "description": "true means the request was accepted and is processing; wait for the injected result. false means rejected; no result will arrive.",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "success"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    "next": {
+      "dispatch": {
+        "kind": "system"
+      },
+      "policy": {
+        "async": {
+          "mode": "none"
+        },
+        "invocation": {
+          "concurrency": {
+            "inFlight": "A previous tool call is still in flight. Wait for its result before completing the step.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "mode": "unlimited"
+          }
+        }
+      },
+      "schema": {
+        "description": "Complete the current stage only after required caller interaction and tool results are done. Do not call next after only an accepted/scheduled tool acknowledgement. On dispatch stages, include selector with exactly one listed keyword.",
+        "name": "next",
+        "parameters": {
+          "properties": {
+            "evidence": {
+              "description": "Brief reason grounded in the caller, tool result, or call event.",
+              "type": "string"
+            },
+            "outcome": {
+              "description": "success or failure for this stage.",
+              "enum": [
+                "success",
+                "failure"
+              ],
+              "type": "string"
+            },
+            "selector": {
+              "description": "Optional dispatch keyword. Use only when the stage instruction lists selector keywords.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "outcome",
+            "evidence"
+          ],
+          "type": "object"
+        },
+        "response": {
+          "properties": {
+            "next_instructions": {
+              "description": "Guidance for what to say or do next.",
+              "type": "string"
+            },
+            "success": {
+              "description": "true means the outcome was accepted; false means retry using next_instructions.",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "success",
+            "next_instructions"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    "roll_number": {
+      "dispatch": {
+        "integrationId": "019f19a1-36cb-7e05-9e29-afd8dea3aff0",
+        "kind": "integration",
+        "operation": "roll"
+      },
+      "policy": {
+        "async": {
+          "mode": "wait_for_result",
+          "staleResult": {
+            "mode": "drop"
+          },
+          "timeout": {
+            "secs": 20
+          }
+        },
+        "integrationHostFailureGuidance": {
+          "internal": "The integration could not be completed. Tell the caller, then follow the current step's failure instructions.",
+          "sandboxViolation": "The integration could not complete safely. Tell the caller the request could not be completed, then follow the current step's failure instructions.",
+          "timedOut": "The offer-code roll timed out. Tell the caller the code could not be generated and use next with failure.",
+          "unavailable": "The integration service is temporarily unavailable. Tell the caller the request could not be completed, then follow the current step's failure instructions."
+        },
+        "invocation": {
+          "concurrency": {
+            "inFlight": "I'm still working on your previous request — give me a moment.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "exceeded": "That tool has already run for this step. Continue the conversation.",
+            "mode": "once"
+          }
+        }
+      },
+      "schema": {
+        "description": "Generate a random integer from 1 through the provided inclusive upper bound.",
+        "name": "roll_number",
+        "parameters": {
+          "properties": {
+            "max": {
+              "description": "Inclusive upper bound for the random number. Use 9999 for this offer-code demo.",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "max"
+          ],
+          "type": "object"
+        },
+        "response": {
+          "description": "The request acknowledgement.",
+          "properties": {
+            "success": {
+              "description": "true means validation accepted the request and the execution result will be injected shortly. A validation rejection is returned as a function error.",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "success"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    "send_message": {
+      "dispatch": {
+        "integrationId": "019f19a1-36ca-754d-ac43-e8849a017de9",
+        "kind": "integration",
+        "operation": "send_message"
+      },
+      "policy": {
+        "async": {
+          "mode": "wait_for_result",
+          "staleResult": {
+            "mode": "drop"
+          },
+          "timeout": {
+            "secs": 20
+          }
+        },
+        "integrationHostFailureGuidance": {
+          "internal": "The integration could not be completed. Tell the caller, then follow the current step's failure instructions.",
+          "sandboxViolation": "The integration could not complete safely. Tell the caller the request could not be completed, then follow the current step's failure instructions.",
+          "timedOut": "The confirmation message request timed out. Tell the caller the message could not be queued and use next with failure.",
+          "unavailable": "The integration service is temporarily unavailable. Tell the caller the request could not be completed, then follow the current step's failure instructions."
+        },
+        "invocation": {
+          "concurrency": {
+            "inFlight": "I'm still working on your previous request — give me a moment.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "exceeded": "That tool has already run for this step. Continue the conversation.",
+            "mode": "once"
+          }
+        }
+      },
+      "schema": {
+        "description": "Send a short confirmation message to a customer via the CRM. Do not include a phone number; delivery details come from integration context.",
+        "name": "send_message",
+        "parameters": {
+          "properties": {
+            "message": {
+              "description": "The short message to send to the customer.",
+              "type": "string"
+            },
+            "unique_id": {
+              "description": "The unique ID, for example C-1001.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "unique_id",
+            "message"
+          ],
+          "type": "object"
+        },
+        "response": {
+          "properties": {
+            "success": {
+              "description": "true means the request was accepted and is processing; wait for the injected result. false means rejected; no result will arrive.",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "success"
+          ],
+          "type": "object"
+        }
+      }
+    }
+  }
+}

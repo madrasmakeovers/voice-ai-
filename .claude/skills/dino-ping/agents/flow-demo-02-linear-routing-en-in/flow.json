@@ -1,0 +1,148 @@
+{
+  "contractVersion": "0.1.0",
+  "guidance": {
+    "notAllowed": "That tool is not available in this step. Continue the conversation using the available tools.",
+    "unknownTool": "That tool is not available. Continue using the tools that are available for this step."
+  },
+  "initiate": true,
+  "lifecycleAudio": {
+    "ending": {
+      "audio": "time_limit.opus",
+      "timeoutMs": 5169
+    },
+    "error": {
+      "audio": "error.opus",
+      "timeoutMs": 5769
+    },
+    "greeting": "greeting.opus",
+    "idle": {
+      "audio": "idle_warning.opus",
+      "playbackTimeoutMs": 3289,
+      "responseWaitMs": 10000,
+      "silenceBeforeMs": 12000
+    }
+  },
+  "persona": "You are Aria on a driver-support line. Help drivers with missing login OTPs in short Indian English turns.",
+  "stages": {
+    "01a0b599-3166-7450-8f3c-0f95b07ebbfa": {
+      "bargeIn": true,
+      "instruction": "Say this is Driver Support for login OTP help. Collect the registered mobile number and confirm they are using the official driver app. Succeed when both are known; fail for refusal, unrelated issues, or missing required details.",
+      "name": "collect_details",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Briefly say this flow can help only with driver login OTP issues, thank them, and say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        },
+        "success": {
+          "target": "01a0b599-3166-7450-8f3c-0fb181088378",
+          "type": "route"
+        }
+      },
+      "toolPolicy": {
+        "tools": []
+      }
+    },
+    "01a0b599-3166-7450-8f3c-0fa0ab0b1727": {
+      "bargeIn": true,
+      "instruction": "If OTP arrived, tell the driver they can log in now. If OTP still did not arrive, tell them the driver-side checks are complete and support can check dashboard status next. Succeed after giving the next step.",
+      "name": "confirm_result",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Thank the caller and say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        },
+        "success": {
+          "next_instructions": "Thank the caller and say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        }
+      },
+      "toolPolicy": {
+        "tools": []
+      }
+    },
+    "01a0b599-3166-7450-8f3c-0fb181088378": {
+      "bargeIn": true,
+      "instruction": "Run these checks one by one: mobile network, SMS inbox and spam, SMS permission, notification permission, and device clock setting. Ask the driver to request OTP again. Succeed if OTP arrives or all checks are completed; fail if the driver refuses the checks.",
+      "name": "run_checks",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Tell the driver the basic OTP checks are needed before escalation, thank them, and say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        },
+        "success": {
+          "target": "01a0b599-3166-7450-8f3c-0fa0ab0b1727",
+          "type": "route"
+        }
+      },
+      "toolPolicy": {
+        "tools": []
+      }
+    }
+  },
+  "start": "01a0b599-3166-7450-8f3c-0f95b07ebbfa",
+  "tools": {
+    "next": {
+      "dispatch": {
+        "kind": "system"
+      },
+      "policy": {
+        "async": {
+          "mode": "none"
+        },
+        "invocation": {
+          "concurrency": {
+            "inFlight": "A previous tool call is still in flight. Wait for its result before completing the step.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "mode": "unlimited"
+          }
+        }
+      },
+      "schema": {
+        "description": "Complete the current call step. Use success only when the stage instruction is satisfied; use failure when it cannot be completed.",
+        "name": "next",
+        "parameters": {
+          "properties": {
+            "evidence": {
+              "description": "Brief, specific reason for the outcome.",
+              "type": "string"
+            },
+            "outcome": {
+              "description": "Allowed outcome for completing the current instruction.",
+              "enum": [
+                "success",
+                "failure"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "outcome",
+            "evidence"
+          ],
+          "type": "object"
+        },
+        "response": {
+          "properties": {
+            "next_instructions": {
+              "type": "string"
+            },
+            "success": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "success",
+            "next_instructions"
+          ],
+          "type": "object"
+        }
+      }
+    }
+  }
+}

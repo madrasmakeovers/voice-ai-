@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 3,
+  "cases": [
+    {
+      "name": "roll-with-single-outcome",
+      "operation": "roll",
+      "args": { "max": 1 },
+      "record": {},
+      "context": {},
+      "config": {},
+      "expected": {
+        "validation": {
+          "verdict": "accepted",
+          "data": "The request is valid. Wait for the random-number result, which will arrive shortly."
+        },
+        "execution": { "verdict": "completed", "data": "The random number is 1." }
+      }
+    },
+    {
+      "name": "reject-non-integer-bound",
+      "operation": "roll",
+      "args": { "max": "ten" },
+      "record": {},
+      "context": {},
+      "config": {},
+      "expected": {
+        "validation": {
+          "verdict": "rejected",
+          "reason": "arguments.max must be an integer from 1 through 1000000"
+        }
+      }
+    }
+  ]
+}

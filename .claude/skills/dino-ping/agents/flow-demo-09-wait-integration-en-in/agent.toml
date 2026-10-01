@@ -1,0 +1,6 @@
+name = "F09 - Wait Integration"
+description = "Agent-owned async Component integration demonstrates acceptance, result injection, and end."
+model = "gemini-3.8-live"
+voice = "Leda"
+language = "en-IN"
+temperature = 0.4

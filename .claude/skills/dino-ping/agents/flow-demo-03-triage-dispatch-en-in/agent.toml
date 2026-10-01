@@ -1,0 +1,6 @@
+name = "F03 - Triage Dispatch"
+description = "One triage stage dispatches into four branches and captures a disposition."
+model = "gemini-3.8-live"
+voice = "Leda"
+language = "en-IN"
+temperature = 0.4

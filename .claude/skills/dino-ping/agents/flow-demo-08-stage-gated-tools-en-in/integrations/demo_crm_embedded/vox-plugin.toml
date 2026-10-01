@@ -1,0 +1,9 @@
+schema_version = 1
+name = "demo_crm_embedded"
+language = "rust"
+abi = "vox:integration/plugin@0.2.0"
+plugin_ref = "demo_crm_embedded.wasm"
+operations = [
+    "verify_pin",
+    "lookup_customer_info",
+]

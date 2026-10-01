@@ -1,0 +1,6 @@
+name = "F14 - Multi Random Roll"
+description = "Flow demo: repeatedly invoke one wait-for-result random-number tool until its authored policy stops further calls. Gemini, en-IN."
+model = "gemini-3.8-live"
+voice = "Leda"
+language = "en-IN"
+temperature = 0.6

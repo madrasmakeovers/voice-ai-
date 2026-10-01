@@ -1,0 +1,6 @@
+name = "F01 - Basic End"
+description = "One-stage office-hours FAQ with explicit success and failure endings."
+model = "gemini-3.8-live"
+voice = "Leda"
+language = "en-IN"
+temperature = 0.3

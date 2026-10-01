@@ -1,0 +1,437 @@
+{
+  "contractVersion": "0.1.0",
+  "guidance": {
+    "notAllowed": "That tool is not available in this step. Continue the conversation using the available tools.",
+    "unknownTool": "That tool is not available. Continue using the tools that are available for this step."
+  },
+  "initiate": true,
+  "integrations": {
+    "019f19a1-36c8-7402-b713-fa31e757600e": {
+      "configuration": {},
+      "id": "019f19a1-36c8-7402-b713-fa31e757600e",
+      "label": "demo crm",
+      "operations": [
+        "check_otp_status",
+        "log_kapture_note"
+      ],
+      "pluginRef": "demo_crm_embedded.wasm"
+    }
+  },
+  "lifecycleAudio": {
+    "ending": {
+      "audio": "time_limit.opus",
+      "timeoutMs": 5169
+    },
+    "error": {
+      "audio": "error.opus",
+      "timeoutMs": 5769
+    },
+    "greeting": "greeting.opus",
+    "idle": {
+      "audio": "idle_warning.opus",
+      "playbackTimeoutMs": 3289,
+      "responseWaitMs": 10000,
+      "silenceBeforeMs": 12000
+    }
+  },
+  "persona": "You are Aria for [[account]] driver support. Help drivers with missing login OTPs in short Indian English turns. Record each collected fact with memory. Never invent dashboard results. In the post, read memory, relay the CRM note, then capture the final disposition.",
+  "posts": {
+    "log_kapture_case": {
+      "instruction": "First call memory with action read. From the returned facts and transcript, call log_kapture_note once with issue_type login_otp_not_generated and resolution_status resolved, escalated, or unresolved. After the relay is accepted, call mark_disposition once with the same disposition, registered mobile, stageReached, and a concise summary.",
+      "timeoutSecs": 20,
+      "toolPolicy": {
+        "tools": [
+          "memory",
+          "log_kapture_note",
+          "mark_disposition"
+        ]
+      }
+    }
+  },
+  "stages": {
+    "01a0b5a6-7180-70d2-aff9-61359c0151db": {
+      "bargeIn": true,
+      "instruction": "If OTP arrived, say they can log in and succeed. Otherwise call check_otp_status once with collected mobile and app version. Wait for the actual dashboard result, then give the mapped next step: escalate system/gateway issues, guide number update for inactive/mismatch, or retry login if OTP was generated.",
+      "name": "bpp_check_and_close",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Tell the driver the OTP status could not be checked right now and ask them to contact support again if the issue continues.",
+          "post": "log_kapture_case",
+          "timeoutSecs": 10,
+          "type": "end_then_post"
+        },
+        "success": {
+          "next_instructions": "Ask if they need any other login help. If not, thank them and goodbye.",
+          "post": "log_kapture_case",
+          "timeoutSecs": 10,
+          "type": "end_then_post"
+        }
+      },
+      "toolPolicy": {
+        "tools": [
+          "check_otp_status"
+        ]
+      }
+    },
+    "01a0b5a6-7180-70d2-aff9-614d20cf835b": {
+      "bargeIn": true,
+      "instruction": "Say this is [[account]] support for login OTP help. Collect registered mobile, app version, and official [[account]] Driver app confirmation one at a time. Immediately call memory with action write after learning each fact; use one write per fact. Succeed only when all three facts are recorded. Fail for refusal, silence after one re-ask, or unrelated issue.",
+      "name": "collect_driver_context",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Briefly say you can help only with login OTP support, then thank them and goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        },
+        "success": {
+          "target": "01a0b5a6-7180-70d2-aff9-615e1e1e374e",
+          "type": "route"
+        }
+      },
+      "toolPolicy": {
+        "tools": [
+          "memory"
+        ]
+      }
+    },
+    "01a0b5a6-7180-70d2-aff9-615e1e1e374e": {
+      "bargeIn": true,
+      "instruction": "Run quick checks: network, SMS inbox/spam, SMS permission, notifications, and phone date/time. Ask them to request OTP again. Succeed if OTP arrives or all checks are complete; fail if they refuse after one re-ask.",
+      "name": "driver_side_troubleshooting",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Tell the driver the basic OTP checks are needed before escalation, then thank them and goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        },
+        "success": {
+          "target": "01a0b5a6-7180-70d2-aff9-61359c0151db",
+          "type": "route"
+        }
+      },
+      "toolPolicy": {
+        "tools": []
+      }
+    }
+  },
+  "start": "01a0b5a6-7180-70d2-aff9-614d20cf835b",
+  "tools": {
+    "check_otp_status": {
+      "dispatch": {
+        "integrationId": "019f19a1-36c8-7402-b713-fa31e757600e",
+        "kind": "integration",
+        "operation": "check_otp_status"
+      },
+      "policy": {
+        "async": {
+          "mode": "wait_for_result",
+          "staleResult": {
+            "mode": "drop"
+          },
+          "timeout": {
+            "secs": 25
+          }
+        },
+        "integrationHostFailureGuidance": {
+          "internal": "The integration could not be completed. Tell the caller, then follow the current step's failure instructions.",
+          "sandboxViolation": "The integration could not complete safely. Tell the caller the request could not be completed, then follow the current step's failure instructions.",
+          "timedOut": "The BPP OTP status check timed out. Tell the driver the dashboard check could not be completed and use next with failure.",
+          "unavailable": "The integration service is temporarily unavailable. Tell the caller the request could not be completed, then follow the current step's failure instructions."
+        },
+        "invocation": {
+          "concurrency": {
+            "inFlight": "I'm still checking the OTP status — give me a moment.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "exceeded": "That tool has already run for this step. Continue the conversation.",
+            "mode": "once"
+          }
+        }
+      },
+      "schema": {
+        "description": "Check the demo BPP dashboard status for a driver's login OTP issue.",
+        "name": "check_otp_status",
+        "parameters": {
+          "properties": {
+            "app_version": {
+              "description": "The driver app version shared by the driver.",
+              "type": "string"
+            },
+            "registered_mobile": {
+              "description": "Driver's registered mobile number, preferably with country code.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "registered_mobile",
+            "app_version"
+          ],
+          "type": "object"
+        },
+        "response": {
+          "properties": {
+            "success": {
+              "description": "true means the request was accepted and is processing; wait for the injected result. false means rejected; no result will arrive.",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "success"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    "log_kapture_note": {
+      "dispatch": {
+        "integrationId": "019f19a1-36c8-7402-b713-fa31e757600e",
+        "kind": "integration",
+        "operation": "log_kapture_note"
+      },
+      "policy": {
+        "async": {
+          "mode": "fire_and_forget",
+          "timeout": {
+            "secs": 15
+          }
+        },
+        "integrationHostFailureGuidance": {
+          "internal": "The integration could not be completed. Tell the caller, then follow the current step's failure instructions.",
+          "sandboxViolation": "The integration could not complete safely. Tell the caller the request could not be completed, then follow the current step's failure instructions.",
+          "timedOut": "The Kapture note could not be queued before timeout.",
+          "unavailable": "The integration service is temporarily unavailable. Tell the caller the request could not be completed, then follow the current step's failure instructions."
+        },
+        "invocation": {
+          "concurrency": {
+            "inFlight": "The Kapture note is already being queued.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "exceeded": "That tool has already run for this step. Continue the conversation.",
+            "mode": "once"
+          }
+        }
+      },
+      "schema": {
+        "description": "Queue a demo Kapture CRM note for this OTP support call.",
+        "name": "log_kapture_note",
+        "parameters": {
+          "properties": {
+            "issue_type": {
+              "description": "Use login_otp_not_generated for this demo.",
+              "enum": [
+                "login_otp_not_generated"
+              ],
+              "type": "string"
+            },
+            "notes": {
+              "description": "Brief summary of troubleshooting and dashboard result.",
+              "type": "string"
+            },
+            "registered_mobile": {
+              "description": "Driver's registered mobile number.",
+              "type": "string"
+            },
+            "resolution_status": {
+              "description": "Final OTP support disposition.",
+              "enum": [
+                "resolved",
+                "escalated",
+                "unresolved"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "registered_mobile",
+            "issue_type",
+            "resolution_status",
+            "notes"
+          ],
+          "type": "object"
+        },
+        "response": {
+          "properties": {
+            "success": {
+              "description": "true means the logging request was accepted and queued; false means rejected.",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "success"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    "mark_disposition": {
+      "dispatch": {
+        "handler": "capture",
+        "kind": "flow_local"
+      },
+      "policy": {
+        "async": {
+          "mode": "none"
+        },
+        "invocation": {
+          "arguments": {
+            "invalid": "Provide stageReached, disposition, registeredMobile, and a non-empty summary that match the capture schema."
+          },
+          "concurrency": {
+            "inFlight": "The final disposition is already being recorded. Wait for it to finish.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "exceeded": "The final disposition is already recorded. Do not call mark_disposition again.",
+            "mode": "once"
+          }
+        }
+      },
+      "schema": {
+        "description": "Capture the final structured OTP-support disposition after the CRM relay.",
+        "name": "mark_disposition",
+        "parameters": {
+          "properties": {
+            "disposition": {
+              "description": "Final business result of the OTP-support interaction.",
+              "enum": [
+                "resolved",
+                "escalated",
+                "unresolved"
+              ],
+              "type": "string"
+            },
+            "registeredMobile": {
+              "description": "Driver's registered mobile recalled from memory.",
+              "type": "string"
+            },
+            "stageReached": {
+              "description": "Furthest flow stage reached before the call closed.",
+              "enum": [
+                "collect_driver_context",
+                "driver_side_troubleshooting",
+                "bpp_check_and_close"
+              ],
+              "type": "string"
+            },
+            "summary": {
+              "description": "Short transcript-grounded outcome summary.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "stageReached",
+            "disposition",
+            "registeredMobile",
+            "summary"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    "memory": {
+      "dispatch": {
+        "handler": "memory",
+        "kind": "flow_local"
+      },
+      "policy": {
+        "async": {
+          "mode": "none"
+        },
+        "invocation": {
+          "concurrency": {
+            "inFlight": "A memory action is already being handled. Wait for it before calling memory again.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "mode": "unlimited"
+          }
+        }
+      },
+      "schema": {
+        "description": "Record or recall call facts. Write one fact as soon as it is learned; read returns all recorded facts.",
+        "name": "memory",
+        "parameters": {
+          "properties": {
+            "action": {
+              "description": "write appends one fact; read returns every fact recorded so far.",
+              "enum": [
+                "read",
+                "write"
+              ],
+              "type": "string"
+            },
+            "content": {
+              "description": "One non-empty fact. Required when action is write.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "action"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    "next": {
+      "dispatch": {
+        "kind": "system"
+      },
+      "policy": {
+        "async": {
+          "mode": "none"
+        },
+        "invocation": {
+          "concurrency": {
+            "inFlight": "A previous tool call is still in flight. Wait for its result before completing the step.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "mode": "unlimited"
+          }
+        }
+      },
+      "schema": {
+        "description": "Complete the current stage only after required caller interaction and tool results are done. Do not call next after only an accepted/scheduled tool acknowledgement.",
+        "name": "next",
+        "parameters": {
+          "properties": {
+            "evidence": {
+              "description": "Brief, specific reason for the outcome, grounded in the caller's answer or a tool result.",
+              "type": "string"
+            },
+            "outcome": {
+              "description": "Allowed outcome for completing the current instruction.",
+              "enum": [
+                "success",
+                "failure"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "outcome",
+            "evidence"
+          ],
+          "type": "object"
+        },
+        "response": {
+          "properties": {
+            "next_instructions": {
+              "type": "string"
+            },
+            "success": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "success",
+            "next_instructions"
+          ],
+          "type": "object"
+        }
+      }
+    }
+  }
+}

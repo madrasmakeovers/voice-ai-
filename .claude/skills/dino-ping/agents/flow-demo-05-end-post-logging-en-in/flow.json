@@ -1,0 +1,220 @@
+{
+  "contractVersion": "0.1.0",
+  "guidance": {
+    "notAllowed": "That tool is not available in this step. Continue the conversation using the available tools.",
+    "unknownTool": "That tool is not available. Continue using the tools that are available for this step."
+  },
+  "initiate": false,
+  "lifecycleAudio": {
+    "ending": {
+      "audio": "time_limit.opus",
+      "timeoutMs": 5169
+    },
+    "error": {
+      "audio": "error.opus",
+      "timeoutMs": 5769
+    },
+    "greeting": "greeting.opus",
+    "idle": {
+      "audio": "idle_warning.opus",
+      "playbackTimeoutMs": 3289,
+      "responseWaitMs": 10000,
+      "silenceBeforeMs": 12000
+    }
+  },
+  "persona": "You are Aria on a taxi rider line. The caller wants the fare for their latest trip. Speak warm, concise Indian English.",
+  "posts": {
+    "wrap_up": {
+      "instruction": "Call mark_disposition once with stageReached, disposition, and a short transcript-grounded summary.",
+      "timeoutSecs": 20,
+      "toolPolicy": {
+        "tools": [
+          "mark_disposition"
+        ]
+      }
+    }
+  },
+  "stages": {
+    "01a0b59c-ee36-7cc3-810a-6240632837b5": {
+      "bargeIn": true,
+      "instruction": "Ask if they need anything else. Succeed if they are all set; fail for a new request this line does not handle.",
+      "name": "anything_else",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Let the rider know they can reach the full helpline for other requests, thank them, and say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        },
+        "success": {
+          "next_instructions": "Thank the rider for calling, wish them a good day, and say goodbye.",
+          "post": "wrap_up",
+          "timeoutSecs": 10,
+          "type": "end_then_post"
+        }
+      },
+      "toolPolicy": {
+        "tools": []
+      }
+    },
+    "01a0b59c-ee36-7cc3-810a-625c75cc7427": {
+      "bargeIn": true,
+      "instruction": "Confirm identity: say, \"Hi, am I speaking with [[rider_name]]?\" Re-ask once if unclear. Succeed only if they confirm; fail for wrong person, busy, abuse, silence, or off-topic after one redirect.",
+      "name": "identity",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Close politely. If wrong person, apologize for the inconvenience; otherwise say we can stop here. Thank them and say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        },
+        "success": {
+          "target": "01a0b59c-ee36-7cc3-810a-6263871c1aea",
+          "type": "route"
+        }
+      },
+      "toolPolicy": {
+        "tools": []
+      }
+    },
+    "01a0b59c-ee36-7cc3-810a-6263871c1aea": {
+      "bargeIn": true,
+      "instruction": "Say their latest trip on [[trip_date]] cost [[trip_fare]] rupees. Ask if that answers it. Succeed if clear; fail if they dispute the fare or want a review.",
+      "name": "summary",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Acknowledge the fare concern, refer them to in-app fare review or the helpline, thank them, and say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        },
+        "success": {
+          "target": "01a0b59c-ee36-7cc3-810a-6240632837b5",
+          "type": "route"
+        }
+      },
+      "toolPolicy": {
+        "tools": []
+      }
+    }
+  },
+  "start": "01a0b59c-ee36-7cc3-810a-625c75cc7427",
+  "tools": {
+    "mark_disposition": {
+      "dispatch": {
+        "handler": "capture",
+        "kind": "flow_local"
+      },
+      "policy": {
+        "async": {
+          "mode": "none"
+        },
+        "invocation": {
+          "arguments": {
+            "invalid": "The tool call arguments were invalid. Reconsider and try again, or continue the conversation."
+          },
+          "concurrency": {
+            "inFlight": "The trip-call disposition is already being recorded. Wait for it to finish.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "exceeded": "The trip-call disposition is already recorded. Do not call mark_disposition again.",
+            "mode": "once"
+          }
+        }
+      },
+      "schema": {
+        "description": "Record the final structured disposition of the trip-summary call.",
+        "name": "mark_disposition",
+        "parameters": {
+          "properties": {
+            "disposition": {
+              "description": "Final business result of the trip-summary interaction.",
+              "enum": [
+                "resolved",
+                "fare_disputed",
+                "referred"
+              ],
+              "type": "string"
+            },
+            "stageReached": {
+              "description": "Furthest flow stage reached before the call closed.",
+              "enum": [
+                "identity",
+                "summary",
+                "anything_else"
+              ],
+              "type": "string"
+            },
+            "summary": {
+              "description": "Brief summary of the trip-summary call and what was discussed.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "stageReached",
+            "disposition",
+            "summary"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    "next": {
+      "dispatch": {
+        "kind": "system"
+      },
+      "policy": {
+        "async": {
+          "mode": "none"
+        },
+        "invocation": {
+          "concurrency": {
+            "inFlight": "A previous tool call is still in flight. Wait for its result before completing the step.",
+            "mode": "reject"
+          },
+          "repeat": {
+            "mode": "unlimited"
+          }
+        }
+      },
+      "schema": {
+        "description": "Complete the current call step. Use success only when the current objective is satisfied; use failure when it is not satisfied after the required interaction handling.",
+        "name": "next",
+        "parameters": {
+          "properties": {
+            "evidence": {
+              "description": "Brief, specific reason for the outcome, grounded in the caller's answer or observed call event.",
+              "type": "string"
+            },
+            "outcome": {
+              "description": "Allowed outcome for completing the current instruction.",
+              "enum": [
+                "success",
+                "failure"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "outcome",
+            "evidence"
+          ],
+          "type": "object"
+        },
+        "response": {
+          "properties": {
+            "next_instructions": {
+              "type": "string"
+            },
+            "success": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "success",
+            "next_instructions"
+          ],
+          "type": "object"
+        }
+      }
+    }
+  }
+}

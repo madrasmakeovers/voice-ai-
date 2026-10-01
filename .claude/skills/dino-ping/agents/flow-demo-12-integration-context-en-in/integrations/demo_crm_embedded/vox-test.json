@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 3,
+  "cases": [
+    {
+      "name": "send-message-with-scoped-call-context",
+      "operation": "send_message",
+      "args": {
+        "message": "Your appointment is confirmed."
+      },
+      "record": { "unique_id": "C-1001", "customer_name": "Ravi Kumar" },
+      "phone": "+12025550100",
+      "context": {
+        "recipient_phone": "+61400000001",
+        "account": "motion-health",
+        "customer_name": "Ravi Kumar"
+      },
+      "config": {},
+      "expected": {
+        "validation": {
+          "verdict": "accepted",
+          "data": { "contextReady": true, "recipientConfigured": true }
+        },
+        "execution": {
+          "verdict": "completed",
+          "data": {
+            "sent": true,
+            "uniqueId": "C-1001",
+            "recipientPhone": "+61400000001",
+            "account": "motion-health",
+            "contextSnapshot": {
+              "recipient_phone": "+61400000001",
+              "customer_name": "Ravi Kumar"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "reject-missing-private-recipient",
+      "operation": "send_message",
+      "args": {
+        "message": "Your appointment is confirmed."
+      },
+      "record": { "unique_id": "C-1001" },
+      "context": { "account": "motion-health" },
+      "config": {},
+      "expected": {
+        "validation": {
+          "verdict": "rejected",
+          "reason": "recipient_phone is required"
+        }
+      }
+    }
+  ]
+}

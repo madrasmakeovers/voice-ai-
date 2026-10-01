@@ -1,0 +1,6 @@
+name = "F12 - Integration Context"
+description = "Agent-owned integration reads trusted call context without model-supplied fields."
+model = "gemini-3.8-live"
+voice = "Leda"
+language = "en-IN"
+temperature = 0.3

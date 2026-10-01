@@ -1,0 +1,6 @@
+name = "F15 - Barge-in Disabled"
+description = "Long assistant turns with flow-owned barge-in disabled, followed by a user response and optional repeat."
+model = "gemini-3.8-live"
+voice = "Leda"
+language = "en-IN"
+temperature = 0.3

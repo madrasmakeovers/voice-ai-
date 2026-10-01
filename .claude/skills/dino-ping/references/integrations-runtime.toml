@@ -1,0 +1,19 @@
+version = 1
+max_concurrent_executions = 20
+
+[sandbox]
+validation_timeout_ms = 250
+execution_timeout_ms = 30000
+validation_fuel = 500000
+execution_fuel = 1000000
+max_memory_bytes = 4194304
+max_table_elements = 128
+max_input_bytes = 32768
+max_output_bytes = 16384
+max_component_bytes = 1048576
+max_http_request_bytes = 16384
+max_http_response_bytes = 16384
+max_http_timeout_ms = 10000
+max_log_bytes = 2048
+max_hmac_key_bytes = 4096
+max_hmac_message_bytes = 65536

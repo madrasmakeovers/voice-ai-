@@ -1,0 +1,6 @@
+name = "F13 - Random Roll"
+description = "Rust integration source is built, packaged, and validated entirely by vox."
+model = "gemini-3.8-live"
+voice = "Leda"
+language = "en-IN"
+temperature = 0.6

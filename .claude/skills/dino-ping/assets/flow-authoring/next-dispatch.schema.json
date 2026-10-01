@@ -1,0 +1,45 @@
+{
+  "description": "Complete the current stage. On a dispatch stage, also include selector with exactly one keyword the instruction lists. Do not call next on a bare tool acknowledgement — wait for the actual tool result first.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "outcome": {
+        "type": "string",
+        "description": "success or failure for this stage.",
+        "enum": [
+          "success",
+          "failure"
+        ]
+      },
+      "evidence": {
+        "type": "string",
+        "description": "Brief reason grounded in the caller, tool result, or call event."
+      },
+      "selector": {
+        "type": "string",
+        "description": "Optional dispatch keyword. Use only when the stage instruction lists selector keywords."
+      }
+    },
+    "required": [
+      "outcome",
+      "evidence"
+    ]
+  },
+  "response": {
+    "type": "object",
+    "properties": {
+      "success": {
+        "type": "boolean",
+        "description": "true means the outcome was accepted; false means retry using next_instructions."
+      },
+      "next_instructions": {
+        "type": "string",
+        "description": "Guidance for what to say or do next."
+      }
+    },
+    "required": [
+      "success",
+      "next_instructions"
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+name = "F05 - End + Post Logging"
+description = "Customer-facing close is followed by strict off-mic disposition capture."
+model = "gemini-3.8-live"
+voice = "Leda"
+language = "en-IN"
+temperature = 0.4
+
+[[placeholders]]
+key = "rider_name"
+kind = "vox_text"
+description = "Rider's name"
+default = "Hemant"
+
+[[placeholders]]
+key = "trip_fare"
+kind = "vox_currency"
+description = "Fare of the rider's most recent trip, in INR"
+default = "247"
+
+[[placeholders]]
+key = "trip_date"
+kind = "vox_date"
+description = "Date of the most recent trip (ISO YYYY-MM-DD)"
+default = "2026-06-14"

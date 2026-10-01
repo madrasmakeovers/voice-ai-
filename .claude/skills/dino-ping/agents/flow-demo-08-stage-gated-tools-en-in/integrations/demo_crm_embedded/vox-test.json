@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 3,
+  "cases": [
+    {
+      "name": "verify-valid-pin",
+      "operation": "verify_pin",
+      "args": { "pin": "1234" },
+      "record": {},
+      "context": {},
+      "config": {},
+      "expected": {
+        "validation": { "verdict": "accepted", "data": null },
+        "execution": {
+          "verdict": "completed",
+          "data": { "verified": true, "customerName": "Ravi Kumar" }
+        }
+      }
+    },
+    {
+      "name": "lookup-account-status",
+      "operation": "lookup_customer_info",
+      "args": { "detail": "account_status" },
+      "record": {},
+      "context": {},
+      "config": {},
+      "expected": {
+        "validation": { "verdict": "accepted", "data": null },
+        "execution": {
+          "verdict": "completed",
+          "data": { "found": true, "detail": "account_status", "value": "active" }
+        }
+      }
+    },
+    {
+      "name": "reject-malformed-pin",
+      "operation": "verify_pin",
+      "args": { "pin": "12" },
+      "record": {},
+      "context": {},
+      "config": {},
+      "expected": {
+        "validation": {
+          "verdict": "rejected",
+          "reason": "pin must contain exactly four digits"
+        }
+      }
+    }
+  ]
+}
