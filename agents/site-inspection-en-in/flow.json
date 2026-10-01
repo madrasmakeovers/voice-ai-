@@ -23,10 +23,10 @@
     }
   },
   "onPrematureTransportClose": "file_abandoned",
-  "persona": "You are Iris, a site report assistant for formwork site engineers. You can see photos, uploaded images and live camera video the engineer shares. Speak short, practical Indian English and understand Tamil-English and Hindi-English site talk. Your job is to turn the engineer's spoken update and photos into the A-1.3/91 Daily Report without them typing anything. Use the memory tool to record each fact as you hear it; the report is filed by the file_daily_report tool at the end. Never invent quantities, names or times.",
+  "persona": "You are Iris, a MEVA site report assistant for formwork site engineers on [[project_name]] for [[client_name]] (project [[project_code]], report date [[visit_date]]). Speak short, practical Indian English and follow Tamil-English or Hindi-English site talk. You can see photos and live camera views he shares. The engineer supports and checks the client's work, so focus on what he checked, what he told the client, and what happened to MEVA material. Never ask what he already said or what is on record. Acknowledge briefly, then ask one question. Smart follow-ups: if he says damaged, ask how many, which items, and whether to raise a replacement; if a pour happened without a pre-pour check, ask whether one was done; if he needs more props or panels, ask how many, by when, and for which floor; if crane or labour was short, ask roughly how many hours were lost. Record facts with memory as you hear them. Never invent quantities, names or times.",
   "posts": {
     "file_abandoned": {
-      "instruction": "Call memory with action read, then call file_daily_report once, building every field only from the recorded notes. Leave unknown fields empty and list them in needs_confirmation. Set report_status to abandoned.",
+      "instruction": "First call memory with action read. Then call file_daily_report once, using only recorded facts and the transcript; leave unknown fields empty and list them in needs_confirmation. Set report_status to abandoned.",
       "timeoutSecs": 30,
       "toolPolicy": {
         "tools": [
@@ -36,7 +36,7 @@
       }
     },
     "file_partial": {
-      "instruction": "Call memory with action read, then call file_daily_report once, building every field only from the recorded notes. Leave unknown fields empty and list them in needs_confirmation. Set report_status to partial.",
+      "instruction": "First call memory with action read. Then call file_daily_report once, using only recorded facts and the transcript; leave unknown fields empty and list them in needs_confirmation. Set report_status to partial.",
       "timeoutSecs": 30,
       "toolPolicy": {
         "tools": [
@@ -46,7 +46,7 @@
       }
     },
     "file_report": {
-      "instruction": "Call memory with action read, then call file_daily_report once, building every field only from the recorded notes. Leave unknown fields empty and list them in needs_confirmation. Set report_status to complete.",
+      "instruction": "First call memory with action read. Then call file_daily_report once, using only recorded facts and the transcript; leave unknown fields empty and list them in needs_confirmation. Set report_status to complete.",
       "timeoutSecs": 30,
       "toolPolicy": {
         "tools": [
@@ -57,19 +57,19 @@
     }
   },
   "stages": {
-    "01a0f2a0-4f19-78e2-8c1d-d99d30653b99": {
+    "01a0f6f0-8c67-7850-8e0a-1ec75503717b": {
       "bargeIn": true,
-      "instruction": "Collect the detailed activities: purpose of visit, current site stage, work completed, discussion points, instructions given to the client side, pending follow-ups, and the next visit. Record each instruction as \"INSTRUCTION: what | responsible person | by when\"; ask for the responsible person or deadline if missing. Record every other item with its field prefix: PURPOSE, STAGE, DONE, DISCUSSION, PENDING, NEXT_VISIT. Record each fact the moment you hear it by calling memory with action write, one write per fact, prefixed with its report field in capitals (for example \"IN_TIME: 09:40\"). Use only memory on this stage. Ask one short question at a time and never re-ask something the engineer already said. Succeed when the engineer confirms nothing else happened on the visit; fail if they want to stop.",
-      "name": "activities",
+      "instruction": "Closing questions. Ask only what the engineer has not already said, one short question at a time, at most four on this stage, choosing the ones most relevant to what he told you. Candidates: instructions given to the client side, each with who is responsible and by when; earlier instructions still not followed; MEVA material that arrived or went back; damaged, missing or misused material; requests for more material; safety observations or near misses; client complaints; delays and why; his pending items; next visit and purpose. Call memory with action write the moment you learn each fact, one write per fact, prefixed with its field (for example \"OUT_TIME: 13:15\"). Succeed when instructions, material and next visit are covered.",
+      "name": "closing",
       "outcomes": {
         "failure": {
-          "next_instructions": "Tell the engineer you have saved what was captured so far as a draft report and they can call back to complete it. Say goodbye.",
+          "next_instructions": "Say you have saved what he shared so far as a draft and he can call back to finish. Say goodbye.",
           "post": "file_partial",
           "timeoutSecs": 10,
           "type": "end_then_post"
         },
         "success": {
-          "target": "01a0f2a0-4f19-78e2-8c1d-d9d53155b33a",
+          "target": "01a0f6f0-8c67-7850-8e0a-1f05b492b4fe",
           "type": "route"
         }
       },
@@ -79,19 +79,41 @@
         ]
       }
     },
-    "01a0f2a0-4f19-78e2-8c1d-d9a7a0b5007b": {
+    "01a0f6f0-8c67-7850-8e0a-1ed922cea586": {
       "bargeIn": true,
-      "instruction": "Call memory with action read, then read back a short summary: times, people met, each system with its quantity, labour, the instructions with who is responsible, pending items, next visit and number of photos. Clearly flag anything recorded as pending or that you inferred rather than heard. Record any correction with memory. Succeed when the engineer confirms the report can be filed; fail if they want to stop without filing.",
-      "name": "confirm_report",
+      "instruction": "Column day follow-ups. Ask only what the engineer has not already said, one short question at a time, at most four on this stage, choosing the ones most relevant to what he told you. Candidates: how many columns shuttered, grid and level; sizes, heights and any non-standard shape; column sets used and still free; kicker and position; plumb both ways and braces; clamps, ties and closed corners; working platform or ladder at the top; forms cleaned with release agent; columns poured and pour rate; bulging, grout leakage or opened joints; columns stripped and finish quality. Call memory with action write the moment you learn each fact, one write per fact, prefixed with its field (for example \"OUT_TIME: 13:15\"). Succeed when the key column facts are recorded.",
+      "name": "column_day",
       "outcomes": {
         "failure": {
-          "next_instructions": "Tell the engineer you have saved what was captured so far as a draft report and they can call back to complete it. Say goodbye.",
+          "next_instructions": "Say you have saved what he shared so far as a draft and he can call back to finish. Say goodbye.",
           "post": "file_partial",
           "timeoutSecs": 10,
           "type": "end_then_post"
         },
         "success": {
-          "next_instructions": "Tell the engineer the daily report is filed with the photos attached, mention how many instructions were logged, thank them, and say goodbye.",
+          "target": "01a0f6f0-8c67-7850-8e0a-1efbcb3cbc9f",
+          "type": "route"
+        }
+      },
+      "toolPolicy": {
+        "tools": [
+          "memory"
+        ]
+      }
+    },
+    "01a0f6f0-8c67-7850-8e0a-1ee7ff98d137": {
+      "bargeIn": true,
+      "instruction": "Call memory with action read. In two or three sentences, summarise the day: work done with quantities, instructions with owners, material issues, next visit, and photo count. Name anything unclear. Record corrections with memory. Succeed when he says it is fine to file; fail if he wants to stop without filing.",
+      "name": "confirm_report",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Say you have saved what he shared so far as a draft and he can call back to finish. Say goodbye.",
+          "post": "file_partial",
+          "timeoutSecs": 10,
+          "type": "end_then_post"
+        },
+        "success": {
+          "next_instructions": "Say the daily report is filed, thank him, and say goodbye.",
           "post": "file_report",
           "timeoutSecs": 10,
           "type": "end_then_post"
@@ -103,19 +125,121 @@
         ]
       }
     },
-    "01a0f2a0-4f19-78e2-8c1d-d9b8cf5e9ad1": {
+    "01a0f6f0-8c67-7850-8e0a-1efbcb3cbc9f": {
       "bargeIn": true,
-      "instruction": "Greet [[engineer_name]] and confirm this is the site visit report for [[project_code]], [[project_name]], client [[client_name]], dated [[visit_date]]. If they say a different project or date, record the correct values with memory as PROJECT or VISIT_DATE. Tell them they can speak naturally in one go, the way they would send a voice note, and you will only ask for anything missing. Succeed once the project and date are confirmed or corrected; fail if they want to stop or it is the wrong person.",
-      "name": "identify_visit",
+      "instruction": "Fill any gaps in the day's basics. Ask only what the engineer has not already said, one short question at a time, at most four on this stage, choosing the ones most relevant to what he told you. Candidates: which tower or block; time reached and left site; client people met and their role, only if new; gang size and foreman; crane, pump or bucket availability; weather impact. If he has not said when he left, suggest he is leaving now and ask him to confirm. Call memory with action write the moment you learn each fact, one write per fact, prefixed with its field (for example \"OUT_TIME: 13:15\"). Succeed when time in, time out and gang are recorded or he does not know.",
+      "name": "site_basics",
       "outcomes": {
         "failure": {
-          "next_instructions": "Apologise for the trouble, say they can call back any time to file a report, and say goodbye.",
+          "next_instructions": "Say you have saved what he shared so far as a draft and he can call back to finish. Say goodbye.",
+          "post": "file_partial",
+          "timeoutSecs": 10,
+          "type": "end_then_post"
+        },
+        "success": {
+          "target": "01a0f6f0-8c67-7850-8e0a-1ec75503717b",
+          "type": "route"
+        }
+      },
+      "toolPolicy": {
+        "tools": [
+          "memory"
+        ]
+      }
+    },
+    "01a0f6f0-8c67-7850-8e0a-1f05b492b4fe": {
+      "bargeIn": true,
+      "instruction": "Ask him to share photos or turn on the camera for today's work and any issues he mentioned. For each view, say briefly what you see and ask what it shows. Point out visible problems such as uneven prop spacing, damaged panels, missing guardrails, or panels on bare soil, and ask him to confirm. Record each as \"PHOTO: caption | observation\" with memory. Do not guess measurements. Succeed when he is done or has no photos.",
+      "name": "site_photos",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Say you have saved what he shared so far as a draft and he can call back to finish. Say goodbye.",
+          "post": "file_partial",
+          "timeoutSecs": 10,
+          "type": "end_then_post"
+        },
+        "success": {
+          "target": "01a0f6f0-8c67-7850-8e0a-1ee7ff98d137",
+          "type": "route"
+        }
+      },
+      "toolPolicy": {
+        "tools": [
+          "memory"
+        ]
+      }
+    },
+    "01a0f6f0-8c67-7850-8e0a-1f19160cba6e": {
+      "bargeIn": true,
+      "instruction": "Slab day follow-ups. Ask only what the engineer has not already said, one short question at a time, at most four on this stage, choosing the ones most relevant to what he told you. Candidates: floor, area and m² of formwork in place; which system and whether cantilevers, beams or drops were done differently; prop and shoring spacing versus drawing; deck level, camber, beam sides and edge forms; edge protection; whether a pre-pour check was done and who signed off; if poured, start and finish time, volume, pump or bucket, and any deflection, settlement or leakage; who supervised the pour; stripping and early striking plan; back-propping below; enough material for the next floor. Call memory with action write the moment you learn each fact, one write per fact, prefixed with its field (for example \"OUT_TIME: 13:15\"). Succeed when the key slab facts are recorded.",
+      "name": "slab_day",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Say you have saved what he shared so far as a draft and he can call back to finish. Say goodbye.",
+          "post": "file_partial",
+          "timeoutSecs": 10,
+          "type": "end_then_post"
+        },
+        "success": {
+          "target": "01a0f6f0-8c67-7850-8e0a-1efbcb3cbc9f",
+          "type": "route"
+        }
+      },
+      "toolPolicy": {
+        "tools": [
+          "memory"
+        ]
+      }
+    },
+    "01a0f6f0-8c67-7850-8e0a-1f2bb2b169fd": {
+      "bargeIn": true,
+      "instruction": "Ask [[engineer_name]] for today's update on [[project_name]] in one go, like a voice note. Let him finish without interrupting. Call memory with action write the moment you learn each fact, one write per fact, prefixed with its field (for example \"OUT_TIME: 13:15\"). Then silently classify the main work of the day and call next with outcome success and selector exactly one of: `wall` for wall formwork, `slab` for slab casting or decking, `column` for column shuttering, `general` for handover, material or anything else. Fail only if he wants to stop or this is the wrong person.",
+      "name": "voice_note",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Say he can call back any time to file the report, and say goodbye.",
           "timeoutSecs": 10,
           "type": "end"
         },
         "success": {
-          "target": "01a0f2a0-4f19-78e2-8c1d-d9f8c4ce7cc0",
-          "type": "route"
+          "fallback": "Choose the one selector closest to the main work he described: wall, slab, column or general.",
+          "max_misses": 3,
+          "routes": [
+            {
+              "keys": [
+                "wall",
+                "walls",
+                "core"
+              ],
+              "target": "01a0f6f0-8c67-7850-8e0a-1f3314fa97ec"
+            },
+            {
+              "keys": [
+                "slab",
+                "deck",
+                "decking"
+              ],
+              "target": "01a0f6f0-8c67-7850-8e0a-1f19160cba6e"
+            },
+            {
+              "keys": [
+                "column",
+                "columns",
+                "pier"
+              ],
+              "target": "01a0f6f0-8c67-7850-8e0a-1ed922cea586"
+            },
+            {
+              "keys": [
+                "general",
+                "handover",
+                "material",
+                "other"
+              ],
+              "target": "01a0f6f0-8c67-7850-8e0a-1efbcb3cbc9f"
+            }
+          ],
+          "type": "dispatch"
         }
       },
       "toolPolicy": {
@@ -124,85 +248,19 @@
         ]
       }
     },
-    "01a0f2a0-4f19-78e2-8c1d-d9cc201c20c1": {
+    "01a0f6f0-8c67-7850-8e0a-1f3314fa97ec": {
       "bargeIn": true,
-      "instruction": "Collect the labour gang (foreman name, number of carpenters and helpers) and other resources such as crane, storage or equipment, including any delays they caused. Record each fact the moment you hear it by calling memory with action write, one write per fact, prefixed with its report field in capitals (for example \"IN_TIME: 09:40\"). Use only memory on this stage. Ask one short question at a time and never re-ask something the engineer already said. Succeed when both are recorded; fail if they want to stop.",
-      "name": "labour_resources",
+      "instruction": "Wall day follow-ups. Ask only what the engineer has not already said, one short question at a time, at most four on this stage, choosing the ones most relevant to what he told you. Candidates: which wall system and where; wall height and thickness; panels planned versus erected, one or both sides; for single-sided walls, how many STB or SK frames and how anchored; ties and tie rods as per drawing; plumb and push-pull props; corners, stop-ends and openings; working platform with guardrails; release agent; agreed pour rate per hour; if poured, times, volume, and any bulging or leakage; stripping plan and finish. Call memory with action write the moment you learn each fact, one write per fact, prefixed with its field (for example \"OUT_TIME: 13:15\"). Succeed when the key wall facts are recorded.",
+      "name": "wall_day",
       "outcomes": {
         "failure": {
-          "next_instructions": "Tell the engineer you have saved what was captured so far as a draft report and they can call back to complete it. Say goodbye.",
+          "next_instructions": "Say you have saved what he shared so far as a draft and he can call back to finish. Say goodbye.",
           "post": "file_partial",
           "timeoutSecs": 10,
           "type": "end_then_post"
         },
         "success": {
-          "target": "01a0f2a0-4f19-78e2-8c1d-d99d30653b99",
-          "type": "route"
-        }
-      },
-      "toolPolicy": {
-        "tools": [
-          "memory"
-        ]
-      }
-    },
-    "01a0f2a0-4f19-78e2-8c1d-d9d53155b33a": {
-      "bargeIn": true,
-      "instruction": "Ask the engineer to share site photos, upload images, or turn on the camera and walk you through the site. For each image or view, briefly describe what you see and ask what it shows, then record one memory write as \"PHOTO: short caption | your observation\". Point out anything that looks inconsistent with what they reported or with safe formwork practice, such as uneven prop spacing, damaged panel faces, missing release agent, or panels stored on soil, and ask them to confirm; record confirmed issues as DISCUSSION. Do not guess measurements you cannot see clearly. Succeed when they have finished sharing or say they have no photos; fail only if they want to stop the call.",
-      "name": "site_photos",
-      "outcomes": {
-        "failure": {
-          "next_instructions": "Tell the engineer you have saved what was captured so far as a draft report and they can call back to complete it. Say goodbye.",
-          "post": "file_partial",
-          "timeoutSecs": 10,
-          "type": "end_then_post"
-        },
-        "success": {
-          "target": "01a0f2a0-4f19-78e2-8c1d-d9a7a0b5007b",
-          "type": "route"
-        }
-      },
-      "toolPolicy": {
-        "tools": [
-          "memory"
-        ]
-      }
-    },
-    "01a0f2a0-4f19-78e2-8c1d-d9e91b400ff1": {
-      "bargeIn": true,
-      "instruction": "Collect the formwork systems on site. For each system record one memory write as \"SYSTEM: product name | quantity | unit | remarks\", e.g. slab formwork, wall panels, props, column sets, release agent. Remarks cover status such as erected, stripped, damaged or requested. Confirm numbers you are unsure of by repeating them back. Record each fact the moment you hear it by calling memory with action write, one write per fact, prefixed with its report field in capitals (for example \"IN_TIME: 09:40\"). Use only memory on this stage. Ask one short question at a time and never re-ask something the engineer already said. Succeed when the engineer has no more systems to add; fail if they want to stop.",
-      "name": "systems",
-      "outcomes": {
-        "failure": {
-          "next_instructions": "Tell the engineer you have saved what was captured so far as a draft report and they can call back to complete it. Say goodbye.",
-          "post": "file_partial",
-          "timeoutSecs": 10,
-          "type": "end_then_post"
-        },
-        "success": {
-          "target": "01a0f2a0-4f19-78e2-8c1d-d9cc201c20c1",
-          "type": "route"
-        }
-      },
-      "toolPolicy": {
-        "tools": [
-          "memory"
-        ]
-      }
-    },
-    "01a0f2a0-4f19-78e2-8c1d-d9f8c4ce7cc0": {
-      "bargeIn": true,
-      "instruction": "Collect: in time, out time, the MEVA representative's name and designation (usually [[engineer_name]]), and each client representative met with their designation. Record each fact the moment you hear it by calling memory with action write, one write per fact, prefixed with its report field in capitals (for example \"IN_TIME: 09:40\"). Use only memory on this stage. Ask one short question at a time and never re-ask something the engineer already said. If the engineer has not left site yet, record OUT_TIME as pending. Succeed when all are recorded; fail if they want to stop.",
-      "name": "visit_basics",
-      "outcomes": {
-        "failure": {
-          "next_instructions": "Tell the engineer you have saved what was captured so far as a draft report and they can call back to complete it. Say goodbye.",
-          "post": "file_partial",
-          "timeoutSecs": 10,
-          "type": "end_then_post"
-        },
-        "success": {
-          "target": "01a0f2a0-4f19-78e2-8c1d-d9e91b400ff1",
+          "target": "01a0f6f0-8c67-7850-8e0a-1efbcb3cbc9f",
           "type": "route"
         }
       },
@@ -213,7 +271,7 @@
       }
     }
   },
-  "start": "01a0f2a0-4f19-78e2-8c1d-d9b8cf5e9ad1",
+  "start": "01a0f6f0-8c67-7850-8e0a-1f2bb2b169fd",
   "tools": {
     "file_daily_report": {
       "dispatch": {
@@ -239,43 +297,64 @@
         }
       },
       "schema": {
-        "description": "File the structured A-1.3/91 Daily Report for this site visit. Call once in the post, after reading memory.",
+        "description": "File the structured A-1.3/91 Daily Report. Call once in the post after reading memory.",
         "name": "file_daily_report",
         "parameters": {
           "properties": {
-            "client": {
-              "description": "Client company.",
+            "client_feedback": {
+              "description": "Complaints or feedback, or empty.",
               "type": "string"
             },
             "client_representatives": {
-              "description": "Client representatives met, with designations.",
+              "description": "Client people met with roles.",
               "type": "string"
             },
-            "discussion_points": {
-              "description": "Discussion points and confirmed issues.",
+            "damaged_or_missing": {
+              "description": "Damaged, missing or misused material with counts.",
               "items": {
                 "type": "string"
               },
               "type": "array"
             },
+            "day_type": {
+              "description": "Main work of the day.",
+              "enum": [
+                "wall",
+                "slab",
+                "column",
+                "general"
+              ],
+              "type": "string"
+            },
+            "delays": {
+              "description": "Delays with cause and hours lost.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "equipment": {
+              "description": "Crane, pump, bucket and availability.",
+              "type": "string"
+            },
             "in_time": {
-              "description": "In time, HH:MM, or empty.",
+              "description": "HH:MM or empty.",
               "type": "string"
             },
             "instructions": {
-              "description": "Instructions given to the client side.",
+              "description": "Instructions to the client side.",
               "items": {
                 "properties": {
                   "by": {
-                    "description": "Deadline or timing.",
+                    "description": "By when.",
                     "type": "string"
                   },
                   "instruction": {
-                    "description": "What was instructed.",
+                    "description": "What.",
                     "type": "string"
                   },
                   "responsible": {
-                    "description": "Responsible person.",
+                    "description": "Who.",
                     "type": "string"
                   }
                 },
@@ -289,38 +368,44 @@
               "type": "array"
             },
             "labour_gang": {
-              "description": "Labour gang available.",
+              "description": "Foreman and gang size.",
               "type": "string"
             },
-            "meva_designation": {
-              "description": "MEVA representative designation.",
+            "location": {
+              "description": "Tower, block, floor or grid.",
               "type": "string"
             },
-            "meva_representative": {
-              "description": "MEVA representative name.",
-              "type": "string"
+            "material_movement": {
+              "description": "Material arrived or returned.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "material_requests": {
+              "description": "Additional material requested.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
             },
             "needs_confirmation": {
-              "description": "Fields that were inferred, pending, or not confirmed by the engineer.",
+              "description": "Fields inferred or not confirmed.",
               "items": {
                 "type": "string"
               },
               "type": "array"
             },
             "next_visit": {
-              "description": "Next visit date and purpose.",
-              "type": "string"
-            },
-            "other_resources": {
-              "description": "Other resources available and any delays.",
+              "description": "Next visit and purpose.",
               "type": "string"
             },
             "out_time": {
-              "description": "Out time, HH:MM, or pending.",
+              "description": "HH:MM or empty.",
               "type": "string"
             },
             "pending": {
-              "description": "Pending follow-ups with owners.",
+              "description": "Pending items with owners.",
               "items": {
                 "type": "string"
               },
@@ -333,20 +418,16 @@
               },
               "type": "array"
             },
+            "pour_details": {
+              "description": "Pour times, volume, method and issues, or empty.",
+              "type": "string"
+            },
             "project_code": {
-              "description": "Project code, [[project_code]] unless corrected.",
-              "type": "string"
-            },
-            "project_name": {
-              "description": "Project name.",
-              "type": "string"
-            },
-            "purpose": {
-              "description": "Purpose of visit.",
+              "description": "Project code from the persona unless he corrected it.",
               "type": "string"
             },
             "report_status": {
-              "description": "complete when the engineer confirmed filing; partial when they stopped early; abandoned when the call dropped.",
+              "description": "complete if he approved filing, partial if he stopped early, abandoned if the call dropped.",
               "enum": [
                 "complete",
                 "partial",
@@ -354,29 +435,33 @@
               ],
               "type": "string"
             },
-            "site_stage": {
-              "description": "Current site stage.",
-              "type": "string"
+            "safety_observations": {
+              "description": "Safety issues or near misses.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
             },
             "stage_reached": {
               "description": "Furthest stage reached.",
               "enum": [
-                "identify_visit",
-                "visit_basics",
-                "systems",
-                "labour_resources",
-                "activities",
+                "voice_note",
+                "wall_day",
+                "slab_day",
+                "column_day",
+                "site_basics",
+                "closing",
                 "site_photos",
                 "confirm_report"
               ],
               "type": "string"
             },
             "systems": {
-              "description": "Systems offered, one entry per SYSTEM note.",
+              "description": "Formwork systems with quantities.",
               "items": {
                 "properties": {
                   "product": {
-                    "description": "Product name.",
+                    "description": "System or item.",
                     "type": "string"
                   },
                   "quantity": {
@@ -384,11 +469,11 @@
                     "type": "string"
                   },
                   "remarks": {
-                    "description": "Status remarks.",
+                    "description": "Status.",
                     "type": "string"
                   },
                   "unit": {
-                    "description": "Unit such as m2, nos, sets, L.",
+                    "description": "Unit.",
                     "type": "string"
                   }
                 },
@@ -402,12 +487,23 @@
               },
               "type": "array"
             },
+            "technical_checks": {
+              "description": "Checks done and their results.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
             "visit_date": {
-              "description": "Visit date as YYYY-MM-DD.",
+              "description": "Report date, YYYY-MM-DD, unless he corrected it.",
+              "type": "string"
+            },
+            "weather": {
+              "description": "Weather impact or empty.",
               "type": "string"
             },
             "work_completed": {
-              "description": "Work completed items.",
+              "description": "Work done today.",
               "items": {
                 "type": "string"
               },
@@ -488,7 +584,7 @@
         }
       },
       "schema": {
-        "description": "Complete the current stage. Use success only when the stage objective is satisfied; use failure when it is not. Do not call next on a bare tool acknowledgement — wait for the actual tool result first.",
+        "description": "Complete the current stage. On a dispatch stage, also include selector with exactly one keyword the instruction lists. Do not call next on a bare tool acknowledgement — wait for the actual tool result first.",
         "parameters": {
           "properties": {
             "evidence": {
@@ -501,6 +597,10 @@
                 "success",
                 "failure"
               ],
+              "type": "string"
+            },
+            "selector": {
+              "description": "Optional dispatch keyword. Use only when the stage instruction lists selector keywords.",
               "type": "string"
             }
           },
