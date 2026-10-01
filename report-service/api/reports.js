@@ -22,6 +22,11 @@ export async function POST(request) {
     return json(400, { error: "executionId and report are required" });
   }
 
+  // The agent only sets visit_date when the engineer reports a different day.
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(report.visit_date || ""))) {
+    report.visit_date = new Date(Date.now() + 330 * 60 * 1000).toISOString().slice(0, 10);
+  }
+
   const existing = await loadReport(id);
   if (existing?.emailedAt) return json(200, { id, duplicate: true });
 

@@ -34,7 +34,7 @@ fn settings(req: &Request) -> Result<Settings, IntegrationError> {
 }
 
 fn check_report(fields: &Map<String, Value>) -> Result<(), IntegrationError> {
-    for key in ["report_status", "project_code", "visit_date"] {
+    for key in ["report_status", "project_name"] {
         let present = fields
             .get(key)
             .and_then(Value::as_str)
