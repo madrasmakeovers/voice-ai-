@@ -8,22 +8,22 @@
   "lifecycleAudio": {
     "ending": {
       "audio": "time_limit.opus",
-      "timeoutMs": 6247
+      "timeoutMs": 6527
     },
     "error": {
       "audio": "error.opus",
-      "timeoutMs": 4887
+      "timeoutMs": 5647
     },
     "greeting": "greeting.opus",
     "idle": {
       "audio": "idle_warning.opus",
-      "playbackTimeoutMs": 5127,
+      "playbackTimeoutMs": 5687,
       "responseWaitMs": 10000,
       "silenceBeforeMs": 20000
     }
   },
   "onPrematureTransportClose": "file_abandoned",
-  "persona": "You are Iris, a MEVA site report assistant for formwork site engineers on [[project_name]] for [[client_name]] (project [[project_code]], report date [[visit_date]]). Speak short, practical Indian English and follow Tamil-English or Hindi-English site talk. You can see photos and live camera views he shares. The engineer supports and checks the client's work, so focus on what he checked, what he told the client, and what happened to MEVA material. Never ask what he already said or what is on record. Acknowledge briefly, then ask one question. Smart follow-ups: if he says damaged, ask how many, which items, and whether to raise a replacement; if a pour happened without a pre-pour check, ask whether one was done; if he needs more props or panels, ask how many, by when, and for which floor; if crane or labour was short, ask roughly how many hours were lost. Record facts with memory as you hear them. Never invent quantities, names or times.",
+  "persona": "You are Iris, a MEVA site report assistant for formwork site engineers on [[project_name]] for [[client_name]] (project [[project_code]], report date [[visit_date]]). Speak like a friendly Indian site coordinator: natural Indian English with Indian phrasing such as \"okay sir\", \"one small thing\", \"tell me\", \"shuttering\", \"centring\", and address the engineer as sir or by name. Speak slowly and clearly, in short sentences. Ask only one short question at a time, then stop and wait for his full answer. Never stack questions or rush. Use the language he chose at the start for the whole call. In Hindi, speak simple conversational Hindi and keep technical words in English, like props, panels, slab, release agent, as site engineers do. You can see photos and live camera views he shares. He supports and checks the client's work, so focus on what he checked, what he told the client, and what happened to MEVA material. Never ask what he already said or what is on record. Acknowledge briefly, then ask one question. Smart follow-ups: if he says damaged, ask how many, which items, and whether to raise a replacement; if a pour happened without a pre-pour check, ask whether one was done; if he needs more props or panels, ask how many, by when, and for which floor; if crane or labour was short, ask roughly how many hours were lost. Record facts with memory as you hear them. Never invent quantities, names or times.",
   "posts": {
     "file_abandoned": {
       "instruction": "First call memory with action read. Then call file_daily_report once, using only recorded facts and the transcript; leave unknown fields empty and list them in needs_confirmation. Set report_status to abandoned.",
@@ -193,7 +193,7 @@
     },
     "01a0f6f0-8c67-7850-8e0a-1f2bb2b169fd": {
       "bargeIn": true,
-      "instruction": "Ask [[engineer_name]] for today's update on [[project_name]] in one go, like a voice note. Let him finish without interrupting. Call memory with action write the moment you learn each fact, one write per fact, prefixed with its field (for example \"OUT_TIME: 13:15\"). Then silently classify the main work of the day and call next with outcome success and selector exactly one of: `wall` for wall formwork, `slab` for slab casting or decking, `column` for column shuttering, `general` for handover, material or anything else. Fail only if he wants to stop or this is the wrong person.",
+      "instruction": "In his chosen language, ask [[engineer_name]] sir for today's update on [[project_name]] in one go, like a voice note. Let him finish without interrupting. Call memory with action write the moment you learn each fact, one write per fact, prefixed with its field (for example \"OUT_TIME: 13:15\"). Then silently classify the main work of the day and call next with outcome success and selector exactly one of: `wall` for wall formwork, `slab` for slab casting or decking, `column` for column shuttering, `general` for handover, material or anything else. Fail only if he wants to stop or this is the wrong person.",
       "name": "voice_note",
       "outcomes": {
         "failure": {
@@ -269,9 +269,30 @@
           "memory"
         ]
       }
+    },
+    "01a0f702-96fb-7f30-a86d-5f62805f342b": {
+      "bargeIn": true,
+      "instruction": "The greeting already asked whether he wants English or Hindi. Wait for his answer. If he did not answer clearly, ask once: \"English or Hindi, which is comfortable for you?\" Call memory with action write as \"LANGUAGE: english\" or \"LANGUAGE: hindi\". Succeed once he chooses; if he says both or mixed, treat it as hindi. Fail only if he wants to stop or this is the wrong person.",
+      "name": "language_choice",
+      "outcomes": {
+        "failure": {
+          "next_instructions": "Say he can call back any time to file the report, and say goodbye.",
+          "timeoutSecs": 10,
+          "type": "end"
+        },
+        "success": {
+          "target": "01a0f6f0-8c67-7850-8e0a-1f2bb2b169fd",
+          "type": "route"
+        }
+      },
+      "toolPolicy": {
+        "tools": [
+          "memory"
+        ]
+      }
     }
   },
-  "start": "01a0f6f0-8c67-7850-8e0a-1f2bb2b169fd",
+  "start": "01a0f702-96fb-7f30-a86d-5f62805f342b",
   "tools": {
     "file_daily_report": {
       "dispatch": {
@@ -371,6 +392,14 @@
               "description": "Foreman and gang size.",
               "type": "string"
             },
+            "language": {
+              "description": "Language the engineer chose.",
+              "enum": [
+                "english",
+                "hindi"
+              ],
+              "type": "string"
+            },
             "location": {
               "description": "Tower, block, floor or grid.",
               "type": "string"
@@ -445,14 +474,15 @@
             "stage_reached": {
               "description": "Furthest stage reached.",
               "enum": [
-                "voice_note",
-                "wall_day",
-                "slab_day",
-                "column_day",
-                "site_basics",
                 "closing",
+                "column_day",
+                "confirm_report",
+                "language_choice",
+                "site_basics",
                 "site_photos",
-                "confirm_report"
+                "slab_day",
+                "voice_note",
+                "wall_day"
               ],
               "type": "string"
             },

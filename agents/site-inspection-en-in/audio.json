@@ -1,6 +1,6 @@
 {
-  "greeting": "Hi, I'm Iris. Tell me about today's site visit.",
-  "error": "Sorry, I had trouble there. Could you say that again?",
-  "time_limit": "We're almost out of time, so I'll save what we have as a draft report.",
-  "idle_warning": "Are you still there? You can keep talking or send a photo."
+  "greeting": "Namaste, I'm Iris. English or Hindi, sir?",
+  "error": "Sorry sir, I didn't catch that. Please say it once more.",
+  "time_limit": "Sir, we're almost out of time, so I'll save this as a draft report.",
+  "idle_warning": "Sir, are you there? Take your time, I'm listening."
 }
