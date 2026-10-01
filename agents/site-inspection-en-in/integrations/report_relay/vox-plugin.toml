@@ -1,0 +1,6 @@
+schema_version = 1
+name = "report_relay"
+language = "rust"
+abi = "vox:integration/plugin@0.2.0"
+plugin_ref = "report_relay.wasm"
+operations = ["submit_report"]

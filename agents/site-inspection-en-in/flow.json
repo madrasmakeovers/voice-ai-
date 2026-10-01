@@ -26,31 +26,34 @@
   "persona": "You are Iris, a MEVA site report assistant for formwork site engineers on [[project_name]] for [[client_name]] (project [[project_code]], report date [[visit_date]]). Speak like a friendly Indian site coordinator: natural Indian English with Indian phrasing such as \"okay sir\", \"one small thing\", \"tell me\", \"shuttering\", \"centring\", and address the engineer as sir or by name. Speak slowly and clearly, in short sentences. Ask only one short question at a time, then stop and wait for his full answer. Never stack questions or rush. Use the language he chose at the start for the whole call. In Hindi, speak simple conversational Hindi and keep technical words in English, like props, panels, slab, release agent, as site engineers do. You can see photos and live camera views he shares. He supports and checks the client's work, so focus on what he checked, what he told the client, and what happened to MEVA material. Never ask what he already said or what is on record. Acknowledge briefly, then ask one question. Smart follow-ups: if he says damaged, ask how many, which items, and whether to raise a replacement; if a pour happened without a pre-pour check, ask whether one was done; if he needs more props or panels, ask how many, by when, and for which floor; if crane or labour was short, ask roughly how many hours were lost. Record facts with memory as you hear them. Never invent quantities, names or times.",
   "posts": {
     "file_abandoned": {
-      "instruction": "First call memory with action read. Then call file_daily_report once, using only recorded facts and the transcript; leave unknown fields empty and list them in needs_confirmation. Set report_status to abandoned.",
-      "timeoutSecs": 30,
+      "instruction": "First call memory with action read. Then call submit_report once with the full report, using only recorded facts and the transcript; write every field in English even if the call was in Hindi; leave unknown fields empty and list them in needs_confirmation. Set report_status to abandoned. After that, call file_daily_report once with the same fields.",
+      "timeoutSecs": 90,
       "toolPolicy": {
         "tools": [
           "memory",
+          "submit_report",
           "file_daily_report"
         ]
       }
     },
     "file_partial": {
-      "instruction": "First call memory with action read. Then call file_daily_report once, using only recorded facts and the transcript; leave unknown fields empty and list them in needs_confirmation. Set report_status to partial.",
-      "timeoutSecs": 30,
+      "instruction": "First call memory with action read. Then call submit_report once with the full report, using only recorded facts and the transcript; write every field in English even if the call was in Hindi; leave unknown fields empty and list them in needs_confirmation. Set report_status to partial. After that, call file_daily_report once with the same fields.",
+      "timeoutSecs": 90,
       "toolPolicy": {
         "tools": [
           "memory",
+          "submit_report",
           "file_daily_report"
         ]
       }
     },
     "file_report": {
-      "instruction": "First call memory with action read. Then call file_daily_report once, using only recorded facts and the transcript; leave unknown fields empty and list them in needs_confirmation. Set report_status to complete.",
-      "timeoutSecs": 30,
+      "instruction": "First call memory with action read. Then call submit_report once with the full report, using only recorded facts and the transcript; write every field in English even if the call was in Hindi; leave unknown fields empty and list them in needs_confirmation. Set report_status to complete. After that, call file_daily_report once with the same fields.",
+      "timeoutSecs": 90,
       "toolPolicy": {
         "tools": [
           "memory",
+          "submit_report",
           "file_daily_report"
         ]
       }
@@ -113,7 +116,7 @@
           "type": "end_then_post"
         },
         "success": {
-          "next_instructions": "Say the daily report is filed, thank him, and say goodbye.",
+          "next_instructions": "Say the daily report will be emailed in a minute with a link to add site photos, thank him, and say goodbye.",
           "post": "file_report",
           "timeoutSecs": 10,
           "type": "end_then_post"
@@ -149,7 +152,7 @@
     },
     "01a0f6f0-8c67-7850-8e0a-1f05b492b4fe": {
       "bargeIn": true,
-      "instruction": "Ask him to share photos or turn on the camera for today's work and any issues he mentioned. For each view, say briefly what you see and ask what it shows. Point out visible problems such as uneven prop spacing, damaged panels, missing guardrails, or panels on bare soil, and ask him to confirm. Record each as \"PHOTO: caption | observation\" with memory. Do not guess measurements. Succeed when he is done or has no photos.",
+      "instruction": "Ask him to share photos or turn on the camera for today's work and any issues he mentioned. For each view, say briefly what you see and ask what it shows. Point out visible problems such as uneven prop spacing, damaged panels, missing guardrails, or panels on bare soil, and ask him to confirm. Record each as \"PHOTO: caption | observation\" with memory. Do not guess measurements. Succeed when he is done or has no photos. Tell him he can also add photo files later from the link in the report email.",
       "name": "site_photos",
       "outcomes": {
         "failure": {
@@ -171,7 +174,7 @@
     },
     "01a0f6f0-8c67-7850-8e0a-1f19160cba6e": {
       "bargeIn": true,
-      "instruction": "Slab day follow-ups. Ask only what the engineer has not already said, one short question at a time, at most four on this stage, choosing the ones most relevant to what he told you. Candidates: floor, area and m² of formwork in place; which system and whether cantilevers, beams or drops were done differently; prop and shoring spacing versus drawing; deck level, camber, beam sides and edge forms; edge protection; whether a pre-pour check was done and who signed off; if poured, start and finish time, volume, pump or bucket, and any deflection, settlement or leakage; who supervised the pour; stripping and early striking plan; back-propping below; enough material for the next floor. Call memory with action write the moment you learn each fact, one write per fact, prefixed with its field (for example \"OUT_TIME: 13:15\"). Succeed when the key slab facts are recorded.",
+      "instruction": "Slab day follow-ups. Ask only what the engineer has not already said, one short question at a time, at most four on this stage, choosing the ones most relevant to what he told you. Candidates: floor, area and m\u00b2 of formwork in place; which system and whether cantilevers, beams or drops were done differently; prop and shoring spacing versus drawing; deck level, camber, beam sides and edge forms; edge protection; whether a pre-pour check was done and who signed off; if poured, start and finish time, volume, pump or bucket, and any deflection, settlement or leakage; who supervised the pour; stripping and early striking plan; back-propping below; enough material for the next floor. Call memory with action write the moment you learn each fact, one write per fact, prefixed with its field (for example \"OUT_TIME: 13:15\"). Succeed when the key slab facts are recorded.",
       "name": "slab_day",
       "outcomes": {
         "failure": {
@@ -538,6 +541,26 @@
                 "type": "string"
               },
               "type": "array"
+            },
+            "client_designation": {
+              "type": "string",
+              "description": "Designation of the main client representative."
+            },
+            "project_name": {
+              "type": "string",
+              "description": "Project name from the persona unless corrected."
+            },
+            "client": {
+              "type": "string",
+              "description": "Client company from the persona."
+            },
+            "meva_representative": {
+              "type": "string",
+              "description": "Site engineer's name."
+            },
+            "meva_designation": {
+              "type": "string",
+              "description": "Site engineer's designation."
             }
           },
           "required": [
@@ -614,7 +637,7 @@
         }
       },
       "schema": {
-        "description": "Complete the current stage. On a dispatch stage, also include selector with exactly one keyword the instruction lists. Do not call next on a bare tool acknowledgement — wait for the actual tool result first.",
+        "description": "Complete the current stage. On a dispatch stage, also include selector with exactly one keyword the instruction lists. Do not call next on a bare tool acknowledgement \u2014 wait for the actual tool result first.",
         "parameters": {
           "properties": {
             "evidence": {
@@ -657,6 +680,304 @@
           ],
           "type": "object"
         }
+      }
+    },
+    "submit_report": {
+      "dispatch": {
+        "kind": "integration",
+        "integrationId": "01a0f71c-32e9-7850-9fcd-8e299bf19557",
+        "operation": "submit_report"
+      },
+      "policy": {
+        "async": {
+          "mode": "fire_and_forget",
+          "timeout": {
+            "secs": 30
+          }
+        },
+        "invocation": {
+          "repeat": {
+            "mode": "once",
+            "exceeded": "The report was already submitted. Do not call submit_report again."
+          },
+          "concurrency": {
+            "mode": "reject",
+            "inFlight": "The report is already being submitted. Wait before calling submit_report again."
+          }
+        },
+        "integrationHostFailureGuidance": {
+          "timedOut": "The report service timed out. Continue and record the report with file_daily_report.",
+          "unavailable": "The report service is unavailable. Continue and record the report with file_daily_report.",
+          "sandboxViolation": "The report could not be sent. Continue and record the report with file_daily_report.",
+          "internal": "The report could not be sent. Continue and record the report with file_daily_report."
+        }
+      },
+      "schema": {
+        "name": "submit_report",
+        "description": "Send the completed A-1.3/91 Daily Report to be turned into a PDF and emailed. Call once in the post, after reading memory.",
+        "parameters": {
+          "properties": {
+            "client_feedback": {
+              "description": "Complaints or feedback, or empty.",
+              "type": "string"
+            },
+            "client_representatives": {
+              "description": "Client people met with roles.",
+              "type": "string"
+            },
+            "damaged_or_missing": {
+              "description": "Damaged, missing or misused material with counts.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "day_type": {
+              "description": "Main work of the day.",
+              "enum": [
+                "wall",
+                "slab",
+                "column",
+                "general"
+              ],
+              "type": "string"
+            },
+            "delays": {
+              "description": "Delays with cause and hours lost.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "equipment": {
+              "description": "Crane, pump, bucket and availability.",
+              "type": "string"
+            },
+            "in_time": {
+              "description": "HH:MM or empty.",
+              "type": "string"
+            },
+            "instructions": {
+              "description": "Instructions to the client side.",
+              "items": {
+                "properties": {
+                  "by": {
+                    "description": "By when.",
+                    "type": "string"
+                  },
+                  "instruction": {
+                    "description": "What.",
+                    "type": "string"
+                  },
+                  "responsible": {
+                    "description": "Who.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "instruction",
+                  "responsible",
+                  "by"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "labour_gang": {
+              "description": "Foreman and gang size.",
+              "type": "string"
+            },
+            "language": {
+              "description": "Language the engineer chose.",
+              "enum": [
+                "english",
+                "hindi"
+              ],
+              "type": "string"
+            },
+            "location": {
+              "description": "Tower, block, floor or grid.",
+              "type": "string"
+            },
+            "material_movement": {
+              "description": "Material arrived or returned.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "material_requests": {
+              "description": "Additional material requested.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "needs_confirmation": {
+              "description": "Fields inferred or not confirmed.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "next_visit": {
+              "description": "Next visit and purpose.",
+              "type": "string"
+            },
+            "out_time": {
+              "description": "HH:MM or empty.",
+              "type": "string"
+            },
+            "pending": {
+              "description": "Pending items with owners.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "photos": {
+              "description": "Photo captions with observations.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "pour_details": {
+              "description": "Pour times, volume, method and issues, or empty.",
+              "type": "string"
+            },
+            "project_code": {
+              "description": "Project code from the persona unless he corrected it.",
+              "type": "string"
+            },
+            "report_status": {
+              "description": "complete if he approved filing, partial if he stopped early, abandoned if the call dropped.",
+              "enum": [
+                "complete",
+                "partial",
+                "abandoned"
+              ],
+              "type": "string"
+            },
+            "safety_observations": {
+              "description": "Safety issues or near misses.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "stage_reached": {
+              "description": "Furthest stage reached.",
+              "enum": [
+                "closing",
+                "column_day",
+                "confirm_report",
+                "language_choice",
+                "site_basics",
+                "site_photos",
+                "slab_day",
+                "voice_note",
+                "wall_day"
+              ],
+              "type": "string"
+            },
+            "systems": {
+              "description": "Formwork systems with quantities.",
+              "items": {
+                "properties": {
+                  "product": {
+                    "description": "System or item.",
+                    "type": "string"
+                  },
+                  "quantity": {
+                    "description": "Quantity.",
+                    "type": "string"
+                  },
+                  "remarks": {
+                    "description": "Status.",
+                    "type": "string"
+                  },
+                  "unit": {
+                    "description": "Unit.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "product",
+                  "quantity",
+                  "unit",
+                  "remarks"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "technical_checks": {
+              "description": "Checks done and their results.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "visit_date": {
+              "description": "Report date, YYYY-MM-DD, unless he corrected it.",
+              "type": "string"
+            },
+            "weather": {
+              "description": "Weather impact or empty.",
+              "type": "string"
+            },
+            "work_completed": {
+              "description": "Work done today.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "client_designation": {
+              "type": "string",
+              "description": "Designation of the main client representative."
+            },
+            "project_name": {
+              "type": "string",
+              "description": "Project name from the persona unless corrected."
+            },
+            "client": {
+              "type": "string",
+              "description": "Client company from the persona."
+            },
+            "meva_representative": {
+              "type": "string",
+              "description": "Site engineer's name."
+            },
+            "meva_designation": {
+              "type": "string",
+              "description": "Site engineer's designation."
+            }
+          },
+          "required": [
+            "report_status",
+            "stage_reached",
+            "project_code",
+            "visit_date",
+            "needs_confirmation"
+          ],
+          "type": "object"
+        }
+      }
+    }
+  },
+  "integrations": {
+    "01a0f71c-32e9-7850-9fcd-8e299bf19557": {
+      "id": "01a0f71c-32e9-7850-9fcd-8e299bf19557",
+      "label": "Daily report relay",
+      "pluginRef": "report_relay.wasm",
+      "operations": [
+        "submit_report"
+      ],
+      "configuration": {
+        "baseUrl": "https://REPORT_SERVICE_URL",
+        "relayKey": "SET_AT_PUBLISH_FROM_.dino/report-secrets.env"
       }
     }
   }
